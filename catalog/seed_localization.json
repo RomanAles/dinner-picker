@@ -1,0 +1,125 @@
+{
+  "families": {
+    "Омлет": {"id": "omelet", "en": "Omelets"},
+    "Паста на сковороде": {"id": "skillet-pasta", "en": "Skillet pasta"},
+    "Тосты": {"id": "toast", "en": "Toast"},
+    "Овощной салат": {"id": "vegetable-salad", "en": "Vegetable salad"},
+    "Гречка с грибами": {"id": "buckwheat-mushrooms", "en": "Buckwheat with mushrooms"},
+    "Тёплая фасоль": {"id": "warm-beans", "en": "Warm beans"}
+  },
+  "ingredients": {
+    "вода": {"id": "water", "en": "water", "basic": true},
+    "гречка": {"id": "buckwheat", "en": "buckwheat"},
+    "консервированная фасоль": {"id": "canned-beans", "en": "canned beans", "aliases": {"en": ["tinned beans"]}},
+    "лук": {"id": "onion", "en": "onion", "aliases": {"ru": ["лук репчатый", "репчатый лук"], "en": ["onions"]}},
+    "макароны": {"id": "pasta", "en": "pasta", "aliases": {"ru": ["паста"], "en": ["macaroni"]}},
+    "огурцы": {"id": "cucumber", "en": "cucumbers", "aliases": {"ru": ["огурец"], "en": ["cucumber"]}},
+    "помидоры": {"id": "tomato", "en": "tomatoes", "aliases": {"ru": ["помидор", "томаты"], "en": ["tomato"]}},
+    "растительное масло": {"id": "vegetable-oil", "en": "vegetable oil", "basic": true},
+    "соль": {"id": "salt", "en": "salt", "basic": true},
+    "сыр": {"id": "cheese", "en": "cheese"},
+    "хлеб": {"id": "bread", "en": "bread"},
+    "чеснок": {"id": "garlic", "en": "garlic"},
+    "шампиньоны": {"id": "button-mushroom", "en": "button mushrooms", "aliases": {"ru": ["грибы шампиньоны"], "en": ["button mushroom", "champignons"]}},
+    "яйца": {"id": "egg", "en": "eggs", "aliases": {"ru": ["яйцо"], "en": ["egg"]}}
+  },
+  "units": {
+    "г": {"id": "g", "en": "g"},
+    "зуб.": {"id": "clove", "en": "clove(s)"},
+    "л": {"id": "l", "en": "L"},
+    "ломт.": {"id": "slice", "en": "slice(s)"},
+    "мл": {"id": "ml", "en": "mL"},
+    "ч. л.": {"id": "tsp", "en": "tsp"},
+    "шт.": {"id": "piece", "en": "pc(s)"},
+    "щеп.": {"id": "pinch", "en": "pinch(es)"}
+  },
+  "recipes": {
+    "omelet-cheese": {
+      "title": "Cheese omelet",
+      "steps": [
+        "Grate the cheese. Beat the eggs with the salt using a fork.",
+        "Heat the oil over medium heat and pour in the eggs. Once the edges set, reduce the heat.",
+        "Sprinkle with the cheese, cover and cook until the omelet is set."
+      ]
+    },
+    "omelet-tomato": {
+      "title": "Tomato omelet",
+      "steps": [
+        "Chop the tomatoes into small pieces. Beat the eggs with the salt.",
+        "Heat the oil and fry the tomatoes for 3–4 minutes to cook off some of their moisture.",
+        "Pour the eggs over the tomatoes, cover and cook over low heat until the omelet is fully set."
+      ]
+    },
+    "omelet-mushroom": {
+      "title": "Button mushroom omelet",
+      "steps": [
+        "Thinly slice the mushrooms. Beat the eggs with the salt.",
+        "Heat the oil and fry the mushrooms until tender and their moisture has evaporated.",
+        "Pour in the eggs, reduce the heat, cover and cook until the omelet is fully set."
+      ]
+    },
+    "pasta-garlic": {
+      "title": "Garlic pasta",
+      "steps": [
+        "Cook the pasta in salted water according to the package instructions. Save some of the cooking water.",
+        "Thinly slice the garlic and gently heat it in the oil over low heat until fragrant.",
+        "Toss the pasta with the garlic oil and a spoonful of the reserved water."
+      ]
+    },
+    "pasta-tomato": {
+      "title": "Tomato and garlic pasta",
+      "steps": [
+        "Start cooking the pasta in salted water according to the package instructions.",
+        "Chop the tomatoes and garlic. Gently heat the garlic in the oil, then add the tomatoes and simmer for 7–8 minutes.",
+        "Drain the pasta and add it to the tomatoes. Toss and heat through."
+      ]
+    },
+    "pasta-cheese": {
+      "title": "Cheese pasta",
+      "steps": [
+        "Cook the pasta in salted water according to the package instructions. Grate the cheese.",
+        "Transfer the pasta to a skillet and add the oil and a couple of spoonfuls of cooking water.",
+        "Take the skillet off the heat, stir in the cheese and serve immediately."
+      ]
+    },
+    "toast-tomato": {
+      "title": "Crisp tomato toast",
+      "steps": [
+        "Toast the bread on both sides in a dry skillet.",
+        "Rub the bread with the garlic. Chop the tomatoes and toss them with the salt and oil.",
+        "Spoon the tomatoes onto the toast just before serving."
+      ]
+    },
+    "toast-cheese": {
+      "title": "Hot cheese toast",
+      "steps": [
+        "Brown the bread on one side in a dry skillet.",
+        "Flip the bread, top it with thin slices of cheese and cover the skillet.",
+        "Cook over low heat until the cheese melts and the bread is crisp."
+      ]
+    },
+    "salad": {
+      "title": "Cucumber and tomato salad",
+      "steps": [
+        "Wash the vegetables and cut them into large pieces.",
+        "Dress with the oil, add the salt and toss just before serving."
+      ]
+    },
+    "buckwheat": {
+      "title": "Buckwheat with button mushrooms and onion",
+      "steps": [
+        "Rinse the buckwheat and cook it in salted water according to the package instructions.",
+        "Chop the onion and mushrooms. Fry the onion in the oil first, then add the mushrooms and cook through.",
+        "Mix the cooked buckwheat with the mushrooms and onion."
+      ]
+    },
+    "beans": {
+      "title": "Warm beans with tomatoes",
+      "steps": [
+        "Drain the beans. Chop the tomatoes and garlic.",
+        "Gently heat the garlic in the oil, add the tomatoes and simmer for 5–6 minutes.",
+        "Add the beans and salt and heat everything together for another 3–4 minutes."
+      ]
+    }
+  }
+}

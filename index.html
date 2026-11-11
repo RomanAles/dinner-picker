@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>На ужин — подбор рецептов</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f3e8;
+      --card: #fffcf4;
+      --ink: #26281d;
+      --muted: #555749;
+      --accent: #943c2d;
+      --green: #33492c;
+      --line: #d8d0bc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+    main { max-width: 1120px; margin: auto; padding: 42px 28px 64px; }
+    header { border-bottom: 1px solid var(--line); padding: 0 0 28px; margin-bottom: 28px; }
+    .eyebrow { color: var(--accent); font-size: .76rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    h1, h2, h3 { font-family: Georgia, serif; line-height: 1.12; margin: 0; }
+    h1 { font-size: clamp(2.7rem, 6vw, 5rem); letter-spacing: -.045em; margin-top: 10px; }
+    h2 { font-size: 1.7rem; }
+    h3 { font-size: 1.5rem; }
+    header p { max-width: 590px; margin: 12px 0 0; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: minmax(265px, 340px) minmax(0, 1fr); align-items: start; gap: 28px; }
+    form, article, .empty { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+    label { display: block; font-weight: 650; }
+    .label-row { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; margin: 18px 0 6px; }
+    textarea, input[type=number] {
+      width: 100%; padding: 10px 12px; background: #fffefa; border: 1px solid #b8ad97;
+      color: var(--ink); border-radius: 8px; font: inherit;
+    }
+    textarea { resize: vertical; min-height: 110px; }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0 18px; }
+    .fields label { margin-bottom: 5px; }
+    .check { display: flex; align-items: flex-start; gap: 7px; margin: 10px 0; font-size: .9rem; font-weight: 500; }
+    input[type=checkbox] { accent-color: var(--green); margin-top: 5px; }
+    button { cursor: pointer; font: inherit; }
+    .example { border: 0; background: transparent; color: var(--accent); text-decoration: underline; padding: 0; font-size: .85rem; }
+    .submit { background: var(--green); color: white; border: 0; border-radius: 8px; padding: 11px 14px; width: 100%; margin-top: 13px; font-weight: 700; }
+    .submit:hover { background: #253c20; }
+    .submit:disabled { opacity: .65; cursor: wait; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .results-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .count { font-size: .9rem; color: var(--muted); }
+    #status { margin: 10px 0; color: var(--muted); }
+    #status:empty { display: none; }
+    #status.error { color: var(--accent); }
+    #results { display: grid; gap: 12px; margin-top: 15px; }
+    .empty { border-style: dashed; color: var(--muted); margin: 0; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; color: var(--muted); font-size: .83rem; margin-bottom: 10px; }
+    .badge { background: #e8eddf; color: #2a4224; padding: 3px 8px; border-radius: 5px; font-weight: 650; }
+    .badge.ai { background: #f4e4d8; color: #773227; }
+    .description { margin: 8px 0 0; color: var(--muted); overflow-wrap: anywhere; }
+    details { margin-top: 12px; }
+    article > details { border-top: 1px solid var(--line); padding-top: 11px; }
+    summary { cursor: pointer; font-weight: 650; color: var(--green); }
+    details details { margin: 10px 0 0 12px; }
+    .recipe-body { display: grid; grid-template-columns: minmax(130px, .75fr) minmax(0, 1.4fr); gap: 12px; margin-top: 12px; }
+    .recipe-body h4 { margin: 0 0 5px; font-size: .9rem; }
+    ul, ol { margin: 0; padding-left: 20px; }
+    li { margin-bottom: 5px; font-size: .9rem; }
+    @media (max-width: 760px) {
+      main { padding: 24px 18px 48px; }
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 425px) {
+      .recipe-body { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Домашняя кухня</div>
+      <h1>Что на ужин?</h1>
+      <p>Укажи, что есть дома и сколько времени есть на готовку. Похожие варианты одного блюда появятся в общей карточке.</p>
+    </header>
+    <div class="layout">
+      <form id="picker">
+        <h2>Что есть дома</h2>
+        <div class="label-row">
+          <label for="ingredients">Продукты</label>
+          <button id="example" class="example" type="button">Заполнить пример</button>
+        </div>
+        <textarea id="ingredients" maxlength="1000" placeholder="Яйца, помидоры, сыр…" required></textarea>
+        <div class="fields">
+          <div>
+            <label for="minutes">До, мин</label>
+            <input id="minutes" type="number" min="5" max="120" value="20" required>
+          </div>
+          <div>
+            <label for="servings">Порций</label>
+            <input id="servings" type="number" min="1" max="6" value="2" required>
+          </div>
+        </div>
+        <label class="check"><input id="basics" type="checkbox" checked> Есть вода, соль и растительное масло</label>
+        <label class="check"><input id="use-ai" type="checkbox" checked> Обобщать варианты с помощью локального ИИ</label>
+        <button class="submit" type="submit">Подобрать ужин</button>
+      </form>
+      <section aria-labelledby="results-title">
+        <div class="results-head">
+          <h2 id="results-title">Подборка</h2>
+          <span id="count" class="count"></span>
+        </div>
+        <p id="status" role="status"></p>
+        <div id="results">
+          <p class="empty">Добавь свои продукты или заполни пример, чтобы посмотреть готовую подборку.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const picker = document.getElementById("picker");
+    const ingredients = document.getElementById("ingredients");
+    const statusLine = document.getElementById("status");
+    const results = document.getElementById("results");
+    const count = document.getElementById("count");
+    const submit = picker.querySelector(".submit");
+    const servingsText = new Intl.PluralRules("ru");
+    const amountFormat = new Intl.NumberFormat("ru");
+
+    function element(tag, text, className) {
+      const node = document.createElement(tag);
+      if (text !== undefined) node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+
+    function recipeBody(recipe, servings) {
+      const body = element("div", undefined, "recipe-body");
+      const products = element("div");
+      const instruction = element("div");
+      const items = element("ul");
+      const steps = element("ol");
+      for (const ingredient of recipe.ingredients) {
+        const amount = amountFormat.format(Number(ingredient.amount));
+        items.append(element("li", `${ingredient.name} · ${amount} ${ingredient.unit}`));
+      }
+      for (const step of recipe.steps) steps.append(element("li", step));
+      const noun = { one: "порцию", few: "порции", many: "порций" }[servingsText.select(servings)];
+      products.append(element("h4", `На ${servings} ${noun}`), items);
+      instruction.append(element("h4", "Как готовить"), steps);
+      body.append(products, instruction);
+      return body;
+    }
+
+    function cardElement(card, servings, open) {
+      const cardNode = element("article");
+      const meta = element("div", undefined, "meta");
+      const labels = { recipe: "Готовый рецепт", group: "Группа рецептов", ai: "ИИ-обобщение" };
+      const times = card.variants.map(recipe => recipe.minutes);
+      const min = Math.min(...times);
+      const max = Math.max(...times);
+      meta.append(
+        element("span", labels[card.source], card.source === "ai" ? "badge ai" : "badge"),
+        element("span", min === max ? `≈ ${min} мин` : `≈ ${min}–${max} мин`),
+      );
+      if (card.variants.length > 1) meta.append(element("span", `${card.variants.length} варианта`));
+      cardNode.append(meta, element("h3", card.title));
+      if (card.summary) cardNode.append(element("p", card.summary, "description"));
+      if (card.common.length && card.variants.length > 1) {
+        cardNode.append(element("p", `Общее: ${card.common.join(", ")}.`, "description"));
+      }
+
+      const base = card.variants.find(recipe => recipe.id === card.base_id);
+      const details = element("details");
+      details.open = open;
+      details.append(
+        element("summary", card.variants.length === 1 ? "Продукты и шаги" : `${base.title} · ${base.minutes} мин`),
+        recipeBody(base, servings),
+      );
+      cardNode.append(details);
+
+      const others = card.variants.filter(recipe => recipe.id !== card.base_id);
+      if (others.length) {
+        const alternatives = element("details");
+        alternatives.append(element("summary", "Другие варианты"));
+        for (const recipe of others) {
+          const variant = element("details");
+          variant.append(element("summary", `${recipe.title} · ${recipe.minutes} мин`), recipeBody(recipe, servings));
+          alternatives.append(variant);
+        }
+        cardNode.append(alternatives);
+      }
+      return cardNode;
+    }
+
+    document.getElementById("example").addEventListener("click", () => {
+      ingredients.value = "яйца, помидоры, сыр, макароны, чеснок, хлеб, огурцы";
+      document.getElementById("minutes").value = 20;
+      document.getElementById("servings").value = 2;
+      document.getElementById("basics").checked = true;
+      ingredients.focus();
+    });
+
+    picker.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const useAI = document.getElementById("use-ai").checked;
+      submit.disabled = true;
+      statusLine.className = "";
+      statusLine.textContent = useAI ? "Ищем рецепты и обобщаем похожие варианты…" : "Ищем подходящие рецепты…";
+      count.textContent = "";
+      results.replaceChildren();
+      results.setAttribute("aria-busy", "true");
+
+      try {
+        const response = await fetch("/api/recipes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ingredients: ingredients.value,
+            minutes: document.getElementById("minutes").valueAsNumber,
+            servings: document.getElementById("servings").valueAsNumber,
+            basics: document.getElementById("basics").checked,
+            use_ai: useAI,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Не удалось подобрать рецепты.");
+        const notices = {
+          unavailable: "Локальная модель недоступна. Похожие варианты сгруппированы по каталогу.",
+          invalid: "Ответ модели не прошёл проверку. Похожие варианты сгруппированы по каталогу.",
+        };
+        statusLine.textContent = notices[data.ai_status] || "";
+        if (data.cards.length) {
+          count.textContent = `Карточек: ${data.cards.length}`;
+          results.replaceChildren(...data.cards.map((card, index) => cardElement(card, data.servings, index === 0)));
+        } else {
+          results.append(element("p", "В каталоге нет блюда из этих продуктов за указанное время. Добавь продукты или увеличь время.", "empty"));
+        }
+      } catch (error) {
+        statusLine.className = "error";
+        statusLine.textContent = error instanceof TypeError ? "Не удалось связаться с локальным приложением." : error.message;
+      } finally {
+        results.removeAttribute("aria-busy");
+        submit.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

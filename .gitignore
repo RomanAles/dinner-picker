@@ -1,0 +1,12 @@
+__pycache__/
+.venv/
+catalog/pilot/
+/dist-data/*
+!/dist-data/android/
+/dist-data/android/*
+!/dist-data/android/recipes.sqlite
+!/dist-data/android/manifest.json
+android/.gradle/
+android/local.properties
+android/**/build/
+.android-signing/

@@ -1,0 +1,42 @@
+{
+  "enrichment_sha256": "5bb171605e6b6ebeac1ad0fe324765dc6c7f7a19a6259d5437a31dcfec2605aa",
+  "sqlite_sha256": "43fe2f5e444ed8f66e84e27e6823564daf9aeeecd1378a3406ba38da249fbfc9",
+  "starter_recipes": 11,
+  "wikibooks_recipes": 479,
+  "wikibooks_with_strict_search": 39,
+  "unit_translation_reviews": 77,
+  "translation_rechecks": 65,
+  "reviewed_repairs": 1,
+  "total_recipes": 490,
+  "tags": {
+    "version": 1,
+    "rule_version": 1,
+    "axes": 8,
+    "tags": 48,
+    "tagged_recipes": 355,
+    "manually_tagged_recipes": 34,
+    "automatically_tagged_recipes": 321,
+    "untagged_recipes": 135,
+    "assignments": 1069,
+    "coverage": {
+      "dish_type": 184,
+      "occasion": 64,
+      "mood": 92,
+      "difficulty": 104,
+      "novelty": 33,
+      "satiety": 28,
+      "meal": 74,
+      "technique": 293
+    },
+    "automatic_coverage": {
+      "dish_type": 150,
+      "occasion": 34,
+      "mood": 66,
+      "difficulty": 70,
+      "novelty": 0,
+      "satiety": 3,
+      "meal": 48,
+      "technique": 259
+    }
+  }
+}

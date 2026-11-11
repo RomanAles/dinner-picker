@@ -1,0 +1,272 @@
+{
+  "version": 1,
+  "axes": {
+    "dish_type": {
+      "labels": ["Тип блюда", "Dish type"],
+      "multiple": true,
+      "tags": {
+        "soup": ["Супы", "Soups"],
+        "main": ["Горячее", "Main dishes"],
+        "baking": ["Выпечка", "Baked goods"],
+        "salad": ["Салаты", "Salads"],
+        "appetizer": ["Закуски", "Appetizers"],
+        "dessert": ["Десерты", "Desserts"],
+        "side": ["Гарниры", "Side dishes"],
+        "sauce": ["Соусы", "Sauces"],
+        "drink": ["Напитки", "Drinks"],
+        "pasta": ["Паста", "Pasta"],
+        "porridge": ["Каши", "Porridge"],
+        "stew": ["Рагу и тушёные блюда", "Stews"],
+        "toast": ["Тосты и бутерброды", "Toast and sandwiches"],
+        "condiment": ["Добавки и начинки", "Condiments and fillings"]
+      }
+    },
+    "occasion": {
+      "labels": ["Повод", "Occasion"],
+      "multiple": true,
+      "tags": {
+        "weekday": ["На каждый день", "Everyday"],
+        "guests": ["Для гостей", "For guests"],
+        "tea": ["К чаю", "With tea"],
+        "weekend": ["На выходные", "Weekend"],
+        "celebration": ["К празднику", "Celebration"]
+      }
+    },
+    "mood": {
+      "labels": ["Настроение", "Mood"],
+      "multiple": true,
+      "tags": {
+        "cozy": ["Уютное", "Cozy"],
+        "refreshing": ["Хочется освежиться", "Something refreshing"],
+        "festive": ["Праздничное настроение", "Festive mood"],
+        "sweet": ["Хочется сладкого", "Something sweet"],
+        "spicy": ["Хочется острого", "Something spicy"]
+      }
+    },
+    "difficulty": {
+      "labels": ["Сложность", "Difficulty"],
+      "multiple": false,
+      "tags": {
+        "easy": ["Легко", "Easy"],
+        "medium": ["Средне", "Intermediate"],
+        "advanced": ["Сложно", "Advanced"]
+      }
+    },
+    "novelty": {
+      "labels": ["Необычность", "Novelty"],
+      "multiple": false,
+      "tags": {
+        "familiar": ["Знакомое", "Familiar"],
+        "twist": ["С изюминкой", "A twist on the familiar"],
+        "discovery": ["Новый вкус", "Something to discover"]
+      }
+    },
+    "satiety": {
+      "labels": ["Сытность", "Satiety"],
+      "multiple": false,
+      "tags": {
+        "light": ["Лёгкое", "Light"],
+        "moderate": ["Умеренно сытное", "Moderately filling"],
+        "hearty": ["Сытное", "Hearty"]
+      }
+    },
+    "meal": {
+      "labels": ["Приём пищи", "Meal"],
+      "multiple": true,
+      "tags": {
+        "breakfast": ["Завтрак", "Breakfast"],
+        "lunch": ["Обед", "Lunch"],
+        "dinner": ["Ужин", "Dinner"]
+      }
+    },
+    "technique": {
+      "labels": ["Способ приготовления", "Cooking method"],
+      "multiple": true,
+      "tags": {
+        "skillet": ["На сковороде", "Pan-cooked"],
+        "oven": ["В духовке", "Oven-baked"],
+        "boil": ["Варка", "Boiling"],
+        "simmer": ["Тушение", "Simmering"],
+        "deep_fry": ["Во фритюре", "Deep-frying"],
+        "grill": ["На гриле", "Grilling"],
+        "smoke": ["Копчение", "Smoking"],
+        "no_heat": ["Без нагрева", "No heat"],
+        "chill": ["Охлаждение", "Chilling"],
+        "infuse": ["Настаивание", "Infusing"],
+        "brew": ["Заваривание", "Brewing"],
+        "waffle_iron": ["В вафельнице", "Waffle iron"]
+      }
+    }
+  },
+  "difficulty_notes": {
+    "technical_step": ["В шагах есть отдельная операция, которая требует навыка, например работа с тестом.", "The instructions include a technique that takes practice, such as working with dough."],
+    "several_methods": ["В рецепте используются несколько способов тепловой обработки.", "The recipe uses several cooking methods."],
+    "cold_assembly": ["Достаточно подготовить и соединить продукты без нагрева.", "Prepare and combine the ingredients without heating."],
+    "one_basic_method": ["В рецепте несколько коротких шагов и один основной способ приготовления.", "The recipe has a few short steps and one main cooking method."],
+    "one_skillet": ["Достаточно нескольких простых действий на одной сковороде.", "A few simple steps in one pan."],
+    "boil_and_saute": ["Крупу варят, а овощи и грибы отдельно обжаривают.", "Cook the grain and sauté the vegetables and mushrooms separately."],
+    "boil_and_mix": ["Макароны нужно сварить и соединить с остальными продуктами.", "Cook the pasta and combine it with the other ingredients."],
+    "cut_and_mix": ["Достаточно нарезать продукты и перемешать.", "Chop and mix the ingredients."],
+    "toast_and_top": ["Нужно подсушить хлеб и добавить начинку.", "Toast the bread and add the topping."],
+    "soak_and_watch": ["Продукты замачивают, а при варке следят за водой и текстурой.", "Soak the ingredients and watch the water level and texture while cooking."],
+    "shape_and_fry": ["Нужно сформовать порции и следить за нагревом масла.", "Shape the portions and monitor the oil temperature."],
+    "one_pot": ["Основные этапы проходят в одной кастрюле.", "The main steps use one pot."],
+    "soak_and_rinse": ["Варку и охлаждение нужно спланировать заранее из-за замачивания.", "Plan cooking and cooling ahead because the recipe needs soaking."],
+    "layered": ["Картофель и начинку готовят отдельно, затем собирают слои.", "Prepare the potatoes and filling separately, then assemble the layers."],
+    "grind_and_grill": ["Нужно измельчить мясо, сформовать котлеты и приготовить их на гриле.", "Grind the meat, shape the patties and cook them on the grill."],
+    "heat_and_chill": ["Нужно нагреть и размешать напиток, затем охладить его.", "Heat and stir the drink, then chill it."],
+    "roll_and_cut": ["Тесто охлаждают, раскатывают и вырезают заготовки.", "Chill and roll out the dough, then cut out the shapes."],
+    "toast_and_grind": ["Специи прогревают и растирают, затем смешивают с остальными продуктами.", "Toast and grind the spices before mixing them with the other ingredients."],
+    "brew": ["Нужно заварить напиток и проследить за нагревом.", "Brew the drink and watch the heat."],
+    "repeat_and_dry": ["Нужно повторить варку в сиропе и запланировать сушку.", "Repeat the syrup cooking step and allow time for drying."],
+    "pastry": ["Нужно приготовить и раскатать тесто, затем выпечь его.", "Prepare and roll out the dough, then bake it."],
+    "infuse": ["Потребуются подготовка ёмкости, настаивание и процеживание.", "Prepare the container, infuse the ingredients and strain the result."],
+    "season_and_pan": ["Овощи и яичную смесь готовят по очереди в одной сковороде.", "Cook the vegetables and egg mixture in stages in one pan."],
+    "two_fry": ["Картофель жарят в два этапа с охлаждением между ними.", "Fry the potatoes twice, with cooling in between."],
+    "separate_sauce": ["Суп и арахисовую заправку готовят отдельно, затем соединяют.", "Prepare the soup and peanut mixture separately, then combine them."],
+    "smoke_and_glaze": ["Нужно следить за температурой, отдельно уварить глазурь и наносить её в несколько этапов.", "Monitor the heat, reduce the glaze separately and brush it on in stages."],
+    "simmer_sauce": ["Соус готовят поэтапно, а картофель доводят до мягкости в соусе.", "Build the sauce in stages and cook the potatoes in it until tender."],
+    "batter_on_pan": ["Нужно замесить тесто и следить за нагревом сковороды при жарке порциями.", "Mix the batter and manage the pan heat as you cook in batches."],
+    "roll_sushi": ["Нужно равномерно разложить рис, плотно свернуть ролл и аккуратно его нарезать.", "Spread the rice evenly, roll tightly and slice carefully."],
+    "porridge": ["Нужно промыть крупу и помешивать кашу при загустении.", "Rinse the grain and stir the porridge as it thickens."],
+    "yeast_and_pan": ["Тесту дают подняться, затем порциями готовят его на сковороде.", "Let the batter rise, then cook it in batches on a griddle."],
+    "waffle": ["Достаточно взбить тесто в блендере и готовить его порциями в вафельнице.", "Blend the batter and cook it in batches in a waffle iron."],
+    "filled_dough_fry": ["Нужно приготовить тесто и начинку, запечатать заготовки и обжарить их во фритюре.", "Make the dough and filling, seal the parcels and deep-fry them."],
+    "soak_and_simmer": ["После замачивания продукты нужно нарезать и сварить вместе.", "Soak the ingredients, then cut and cook them together."],
+    "mix_only": ["Достаточно смешать готовые продукты.", "Simply mix the ingredients."],
+    "whip_and_chill": ["Нужно взбить сливки, собрать пирог на готовой основе и охладить его.", "Whip the cream, assemble the pie on a prepared crust and chill it."],
+    "prepare_and_assemble": ["Нужно подготовить бекон, нарезать овощи и собрать салат.", "Prepare the bacon, cut the vegetables and assemble the salad."],
+    "mix_and_bake": ["Сухую и жидкую смеси соединяют, добавляют кабачок и проверяют готовность выпечки.", "Combine wet and dry mixtures, add the zucchini and check the loaf for doneness."]
+  },
+  "recipes": {
+    "beans": {
+      "dish_type": ["main", "side"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "one_skillet", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["skillet"]
+    },
+    "buckwheat": {
+      "dish_type": ["main", "side"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "boil_and_saute", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["boil", "skillet"]
+    },
+    "omelet-cheese": {
+      "dish_type": ["main"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "one_skillet", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["breakfast", "dinner"], "technique": ["skillet"]
+    },
+    "omelet-mushroom": {
+      "dish_type": ["main"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "one_skillet", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["breakfast", "dinner"], "technique": ["skillet"]
+    },
+    "omelet-tomato": {
+      "dish_type": ["main"], "occasion": ["weekday"], "difficulty": ["easy"], "difficulty_note": "one_skillet", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["breakfast", "dinner"], "technique": ["skillet"]
+    },
+    "pasta-cheese": {
+      "dish_type": ["pasta", "main"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "boil_and_mix", "novelty": ["familiar"], "satiety": ["hearty"], "meal": ["lunch", "dinner"], "technique": ["boil", "skillet"]
+    },
+    "pasta-garlic": {
+      "dish_type": ["pasta", "main"], "occasion": ["weekday"], "difficulty": ["easy"], "difficulty_note": "boil_and_mix", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["boil", "skillet"]
+    },
+    "pasta-tomato": {
+      "dish_type": ["pasta", "main"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "boil_and_mix", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["boil", "simmer"]
+    },
+    "salad": {
+      "dish_type": ["salad", "side"], "occasion": ["weekday"], "mood": ["refreshing"], "difficulty": ["easy"], "difficulty_note": "cut_and_mix", "novelty": ["familiar"], "satiety": ["light"], "meal": ["lunch", "dinner"], "technique": ["no_heat"]
+    },
+    "toast-cheese": {
+      "dish_type": ["toast", "appetizer"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "toast_and_top", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["breakfast"], "technique": ["skillet"]
+    },
+    "toast-tomato": {
+      "dish_type": ["toast", "appetizer"], "occasion": ["weekday", "guests"], "difficulty": ["easy"], "difficulty_note": "toast_and_top", "novelty": ["familiar"], "satiety": ["light"], "meal": ["breakfast", "lunch"], "technique": ["skillet"]
+    },
+    "wikibooks:ru:34357": {
+      "dish_type": ["condiment"], "difficulty": ["medium"], "difficulty_note": "soak_and_watch", "novelty": ["discovery"], "technique": ["boil"]
+    },
+    "wikibooks:en:205976": {
+      "dish_type": ["dessert"], "occasion": ["tea", "weekend"], "mood": ["sweet"], "difficulty": ["medium"], "difficulty_note": "shape_and_fry", "novelty": ["twist"], "technique": ["deep_fry"]
+    },
+    "wikibooks:en:209814": {
+      "dish_type": ["stew", "main"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "one_pot", "novelty": ["twist"], "satiety": ["hearty"], "meal": ["lunch", "dinner"], "technique": ["simmer"]
+    },
+    "wikibooks:en:446467": {
+      "dish_type": ["side"], "difficulty": ["medium"], "difficulty_note": "soak_and_rinse", "novelty": ["discovery"], "technique": ["simmer"]
+    },
+    "wikibooks:en:83006": {
+      "dish_type": ["pasta", "main"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "boil_and_mix", "novelty": ["twist"], "satiety": ["hearty"], "meal": ["lunch", "dinner"], "technique": ["boil"]
+    },
+    "wikibooks:en:38688": {
+      "dish_type": ["appetizer"], "occasion": ["guests", "celebration"], "mood": ["festive"], "difficulty": ["medium"], "difficulty_note": "layered", "novelty": ["discovery"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["boil"]
+    },
+    "wikibooks:en:202135": {
+      "dish_type": ["main"], "occasion": ["guests", "weekend"], "difficulty": ["medium"], "difficulty_note": "grind_and_grill", "novelty": ["familiar"], "satiety": ["hearty"], "meal": ["lunch", "dinner"], "technique": ["grill"]
+    },
+    "wikibooks:en:414624": {
+      "dish_type": ["drink"], "occasion": ["guests"], "mood": ["refreshing"], "difficulty": ["easy"], "difficulty_note": "heat_and_chill", "novelty": ["discovery"], "technique": ["chill"]
+    },
+    "wikibooks:en:393378": {
+      "dish_type": ["baking", "dessert"], "occasion": ["tea", "celebration"], "mood": ["festive", "sweet"], "difficulty": ["medium"], "difficulty_note": "roll_and_cut", "novelty": ["familiar"], "technique": ["oven", "chill"]
+    },
+    "wikibooks:ru:33791": {
+      "dish_type": ["sauce"], "mood": ["spicy"], "difficulty": ["medium"], "difficulty_note": "toast_and_grind", "novelty": ["discovery"], "technique": ["skillet"]
+    },
+    "wikibooks:ru:12632": {
+      "dish_type": ["drink"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "brew", "novelty": ["familiar"], "meal": ["breakfast"], "technique": ["brew"]
+    },
+    "wikibooks:en:452135": {
+      "dish_type": ["side"], "occasion": ["weekday"], "difficulty": ["easy"], "difficulty_note": "one_skillet", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["skillet"]
+    },
+    "wikibooks:en:101881": {
+      "dish_type": ["condiment"], "difficulty": ["medium"], "difficulty_note": "repeat_and_dry", "novelty": ["twist"], "technique": ["boil"]
+    },
+    "wikibooks:en:113687": {
+      "dish_type": ["baking", "dessert"], "occasion": ["tea", "weekend"], "mood": ["cozy", "sweet"], "difficulty": ["medium"], "difficulty_note": "pastry", "novelty": ["discovery"], "technique": ["oven"]
+    },
+    "wikibooks:en:443404": {
+      "dish_type": ["condiment"], "difficulty": ["medium"], "difficulty_note": "infuse", "novelty": ["discovery"], "technique": ["infuse"]
+    },
+    "wikibooks:en:457201": {
+      "dish_type": ["main"], "occasion": ["weekend"], "mood": ["spicy"], "difficulty": ["medium"], "difficulty_note": "season_and_pan", "novelty": ["discovery"], "satiety": ["hearty"], "meal": ["breakfast", "lunch"], "technique": ["skillet"]
+    },
+    "wikibooks:en:454013": {
+      "dish_type": ["side", "appetizer"], "occasion": ["weekend"], "difficulty": ["medium"], "difficulty_note": "two_fry", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["deep_fry"]
+    },
+    "wikibooks:en:457155": {
+      "dish_type": ["soup"], "occasion": ["weekend", "guests"], "mood": ["cozy", "spicy"], "difficulty": ["medium"], "difficulty_note": "separate_sauce", "novelty": ["discovery"], "satiety": ["hearty"], "meal": ["lunch", "dinner"], "technique": ["simmer"]
+    },
+    "wikibooks:en:200032": {
+      "dish_type": ["main"], "occasion": ["guests", "weekend", "celebration"], "mood": ["festive"], "difficulty": ["advanced"], "difficulty_note": "smoke_and_glaze", "novelty": ["twist"], "satiety": ["hearty"], "meal": ["lunch", "dinner"], "technique": ["grill", "smoke"]
+    },
+    "wikibooks:en:13953": {
+      "dish_type": ["side", "stew"], "occasion": ["weekend"], "mood": ["spicy"], "difficulty": ["medium"], "difficulty_note": "simmer_sauce", "novelty": ["twist"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["simmer"]
+    },
+    "wikibooks:en:21215": {
+      "dish_type": ["main", "stew"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "one_pot", "novelty": ["twist"], "satiety": ["hearty"], "meal": ["lunch", "dinner"], "technique": ["simmer"]
+    },
+    "wikibooks:en:112811": {
+      "dish_type": ["dessert"], "occasion": ["weekend", "tea"], "mood": ["cozy", "sweet"], "difficulty": ["medium"], "difficulty_note": "batter_on_pan", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["breakfast"], "technique": ["skillet"]
+    },
+    "wikibooks:en:47381": {
+      "dish_type": ["appetizer"], "occasion": ["guests", "weekend"], "difficulty": ["advanced"], "difficulty_note": "roll_sushi", "novelty": ["twist"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["no_heat"]
+    },
+    "wikibooks:ru:10657": {
+      "dish_type": ["porridge"], "occasion": ["weekday"], "mood": ["cozy"], "difficulty": ["easy"], "difficulty_note": "porridge", "novelty": ["familiar"], "satiety": ["moderate"], "meal": ["breakfast"], "technique": ["boil"]
+    },
+    "wikibooks:en:34645": {
+      "dish_type": ["appetizer"], "occasion": ["weekend"], "mood": ["cozy"], "difficulty": ["medium"], "difficulty_note": "yeast_and_pan", "novelty": ["discovery"], "satiety": ["moderate"], "meal": ["breakfast"], "technique": ["skillet"]
+    },
+    "wikibooks:en:21736": {
+      "dish_type": ["baking", "dessert"], "occasion": ["tea", "weekend"], "mood": ["sweet"], "difficulty": ["easy"], "difficulty_note": "waffle", "novelty": ["twist"], "satiety": ["moderate"], "meal": ["breakfast"], "technique": ["waffle_iron"]
+    },
+    "wikibooks:en:32970": {
+      "dish_type": ["appetizer"], "occasion": ["guests", "weekend"], "mood": ["spicy"], "difficulty": ["advanced"], "difficulty_note": "filled_dough_fry", "novelty": ["discovery"], "satiety": ["moderate"], "meal": ["lunch", "dinner"], "technique": ["boil", "deep_fry"]
+    },
+    "wikibooks:ru:31010": {
+      "dish_type": ["main"], "occasion": ["weekend"], "mood": ["spicy"], "difficulty": ["medium"], "difficulty_note": "soak_and_simmer", "novelty": ["discovery"], "satiety": ["hearty"], "meal": ["lunch", "dinner"], "technique": ["boil"]
+    },
+    "wikibooks:en:127669": {
+      "dish_type": ["sauce"], "mood": ["spicy"], "difficulty": ["easy"], "difficulty_note": "mix_only", "technique": ["no_heat"]
+    },
+    "wikibooks:en:47324": {
+      "dish_type": ["baking", "dessert"], "occasion": ["tea", "guests", "celebration"], "mood": ["sweet", "festive"], "difficulty": ["easy"], "difficulty_note": "whip_and_chill", "novelty": ["familiar"], "technique": ["no_heat", "chill"]
+    },
+    "wikibooks:en:37229": {
+      "dish_type": ["salad"], "occasion": ["weekday"], "difficulty": ["easy"], "difficulty_note": "prepare_and_assemble", "novelty": ["twist"], "satiety": ["moderate"], "meal": ["lunch", "dinner"]
+    },
+    "wikibooks:en:77026": {
+      "dish_type": ["baking", "dessert"], "occasion": ["tea", "weekend"], "mood": ["cozy", "sweet"], "difficulty": ["medium"], "difficulty_note": "mix_and_bake", "novelty": ["twist"], "technique": ["oven"]
+    }
+  }
+}
