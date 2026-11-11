@@ -24,39 +24,6 @@ import java.util.Map;
 import java.util.Set;
 
 final class RecipeCatalog {
-    static final class Ingredient {
-        final String name;
-        final double amount;
-        final String unit;
-
-        Ingredient(String name, double amount, String unit) {
-            this.name = name;
-            this.amount = amount;
-            this.unit = unit;
-        }
-    }
-
-    static final class Recipe {
-        final String id;
-        final String title;
-        final int minutes;
-        final int baseServings;
-        final List<Ingredient> ingredients = new ArrayList<>();
-        final List<String> steps = new ArrayList<>();
-        final List<String> sourceIngredients = new ArrayList<>();
-        String revisionUrl;
-        String licenseUrl;
-        List<Tag> tags = Collections.emptyList();
-        List<String> missingTagAxes = Collections.emptyList();
-
-        Recipe(String id, String title, int minutes, int baseServings) {
-            this.id = id;
-            this.title = title;
-            this.minutes = minutes;
-            this.baseServings = baseServings;
-        }
-    }
-
     static final class Card {
         final String title;
         final List<Recipe> variants = new ArrayList<>();
@@ -96,7 +63,7 @@ final class RecipeCatalog {
         final String id;
         final String label;
         final boolean multiple;
-        final List<Tag> tags = new ArrayList<>();
+        final List<Recipe.Tag> tags = new ArrayList<>();
 
         TagAxis(String id, String label, boolean multiple) {
             this.id = id;
@@ -105,23 +72,7 @@ final class RecipeCatalog {
         }
     }
 
-    static final class Tag {
-        final String axisId;
-        final String id;
-        final String label;
-        final String alternateLabel;
-        final String note;
-
-        Tag(String axisId, String id, String label, String alternateLabel, String note) {
-            this.axisId = axisId;
-            this.id = id;
-            this.label = label;
-            this.alternateLabel = alternateLabel;
-            this.note = note;
-        }
-    }
-
-    private record Match(String id, boolean imported, String titleRu, String titleEn, int minutes,
+    private record Match(String id, boolean imported, String titleEn, int minutes,
                          List<String> missingAxes) {}
 
     private RecipeCatalog() {}
@@ -151,30 +102,29 @@ final class RecipeCatalog {
         return RecipeDiscovery.key(value);
     }
 
-    static List<Card> find(Context context, String text, int minutes, boolean includeBasics, boolean russian)
+    static List<Card> find(Context context, String text, int minutes, boolean includeBasics)
             throws IOException {
-        String lang = russian ? "ru" : "en";
         File file = installedCatalog(context);
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(file.getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
-            Set<String> available = pantry(db, text, includeBasics, russian);
+            Set<String> available = pantry(db, text, includeBasics);
             Map<String, Card> groups = new LinkedHashMap<>();
             try (Cursor rows = db.rawQuery(
-                    "SELECT r.id, r.family_id, f.name_" + lang + ", r.title_" + lang +
+                    "SELECT r.id, r.family_id, f.name_en, r.title_en" +
                     ", r.minutes, r.servings FROM recipe r JOIN family f ON f.id=r.family_id" +
                     " WHERE r.minutes<=? ORDER BY r.minutes, r.id",
                     new String[] {Integer.toString(minutes)})) {
                 while (rows.moveToNext()) {
                     String id = rows.getString(0);
                     Recipe recipe = new Recipe(id, rows.getString(3), rows.getInt(4), rows.getInt(5));
-                    if (!readIngredients(db, id, lang, available, recipe)) {
+                    if (!readIngredients(db, id, available, recipe)) {
                         continue;
                     }
-                    readSteps(db, id, lang, recipe);
+                    readSteps(db, id, recipe);
                     String family = rows.getString(2);
                     groups.computeIfAbsent(rows.getString(1), unused -> new Card(family)).variants.add(recipe);
                 }
             }
-            try (Cursor rows = db.rawQuery(externalRows(lang) + " WHERE r.strict_ready=1 AND r.minutes<=?",
+            try (Cursor rows = db.rawQuery(externalRows() + " WHERE r.strict_ready=1 AND r.minutes<=?",
                     new String[] {Integer.toString(minutes)})) {
                 while (rows.moveToNext()) {
                     if (availableExternal(db, rows.getString(0), available)) {
@@ -189,9 +139,7 @@ final class RecipeCatalog {
         }
     }
 
-    static List<TagAxis> discoveryAxes(Context context, boolean russian) throws IOException {
-        String lang = russian ? "ru" : "en";
-        String other = russian ? "en" : "ru";
+    static List<TagAxis> discoveryAxes(Context context) throws IOException {
         Map<String, TagAxis> axes = new LinkedHashMap<>();
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
                 null, SQLiteDatabase.OPEN_READONLY)) {
@@ -199,13 +147,13 @@ final class RecipeCatalog {
                 return Collections.emptyList();
             }
             try (Cursor rows = db.rawQuery(
-                    "SELECT a.id, a.name_" + lang + ", a.multiple, t.id, t.name_" + lang + ", t.name_" + other +
+                    "SELECT a.id, a.name_en, a.multiple, t.id, t.name_en, t.name_ru" +
                     " FROM tag_axis a JOIN tag t ON t.axis_id=a.id ORDER BY a.position, t.position", null)) {
                 while (rows.moveToNext()) {
                     String axisId = rows.getString(0);
                     TagAxis axis = axes.computeIfAbsent(axisId,
                             id -> new TagAxis(id, rows.getString(1), rows.getInt(2) != 0));
-                    axis.tags.add(new Tag(axisId, rows.getString(3), rows.getString(4), rows.getString(5), null));
+                    axis.tags.add(new Recipe.Tag(axisId, rows.getString(3), rows.getString(4), rows.getString(5), null));
                 }
             }
         }
@@ -213,13 +161,12 @@ final class RecipeCatalog {
     }
 
     static CatalogPage discover(Context context, String title, Map<String, Set<String>> filters, Integer maxMinutes,
-                                int offset, int limit, boolean russian) throws IOException {
+                                int offset, int limit) throws IOException {
         if (offset < 0 || limit < 1) {
             throw new IllegalArgumentException("Invalid catalog page.");
         }
         RecipeDiscovery query = new RecipeDiscovery(filters, maxMinutes);
         String normalizedTitle = key(title);
-        String lang = russian ? "ru" : "en";
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
                 null, SQLiteDatabase.OPEN_READONLY)) {
             boolean taggedCatalog = hasTags(db);
@@ -230,7 +177,7 @@ final class RecipeCatalog {
             boolean partial = !matches.isEmpty() && !matches.values().iterator().next().get(0).missingAxes().isEmpty();
             List<String> titleHints = normalizedTitle.isEmpty() || partial ? Collections.emptyList()
                     : matches.values().stream().limit(4).map(family -> family.get(0))
-                            .map(match -> russian ? match.titleRu() : match.titleEn())
+                            .map(Match::titleEn)
                             .collect(java.util.stream.Collectors.toList());
             List<Refinement> refinements = matches.isEmpty() || partial
                     ? refinements(db, normalizedTitle, filters, maxMinutes) : Collections.emptyList();
@@ -246,9 +193,9 @@ final class RecipeCatalog {
                     break;
                 }
                 for (Match match : family) {
-                    Recipe recipe = addRecipe(db, match.id(), match.imported(), lang, groups);
+                    Recipe recipe = addRecipe(db, match.id(), match.imported(), groups);
                     if (taggedCatalog && recipe != null) {
-                        recipe.tags = readTags(db, match.id(), lang);
+                        recipe.tags = readTags(db, match.id());
                         recipe.missingTagAxes = match.missingAxes();
                     }
                 }
@@ -272,7 +219,7 @@ final class RecipeCatalog {
                 }
                 best = hits;
                 matches.computeIfAbsent(rows.getString(1), ignored -> new ArrayList<>()).add(new Match(
-                        rows.getString(0), rows.getInt(2) != 0, rows.getString(5), rows.getString(6),
+                        rows.getString(0), rows.getInt(2) != 0, rows.getString(6),
                         rows.getInt(7), query.missingAxes(rows.getString(4))));
             }
         }
@@ -309,17 +256,16 @@ final class RecipeCatalog {
         return options;
     }
 
-    static Recipe recipe(Context context, String id, boolean russian) throws IOException {
-        String lang = russian ? "ru" : "en";
+    static Recipe recipe(Context context, String id) throws IOException {
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
                 null, SQLiteDatabase.OPEN_READONLY)) {
             Map<String, Card> group = new LinkedHashMap<>();
-            Recipe recipe = addRecipe(db, id, false, lang, group);
+            Recipe recipe = addRecipe(db, id, false, group);
             if (recipe == null) {
-                recipe = addRecipe(db, id, true, lang, group);
+                recipe = addRecipe(db, id, true, group);
             }
             if (recipe != null && hasTags(db)) {
-                recipe.tags = readTags(db, id, lang);
+                recipe.tags = readTags(db, id);
             }
             return recipe;
         }
@@ -331,46 +277,46 @@ final class RecipeCatalog {
         }
     }
 
-    private static List<Tag> readTags(SQLiteDatabase db, String id, String lang) {
-        List<Tag> tags = new ArrayList<>();
-        try (Cursor rows = db.rawQuery("SELECT t.axis_id, t.id, t.name_" + lang + ", r.note_" + lang +
+    private static List<Recipe.Tag> readTags(SQLiteDatabase db, String id) {
+        List<Recipe.Tag> tags = new ArrayList<>();
+        try (Cursor rows = db.rawQuery("SELECT t.axis_id, t.id, t.name_en, r.note_en" +
                 " FROM recipe_tag r JOIN tag t ON t.axis_id=r.axis_id AND t.id=r.tag_id" +
                 " JOIN tag_axis a ON a.id=t.axis_id WHERE r.recipe_id=? ORDER BY a.position, t.position",
                 new String[] {id})) {
             while (rows.moveToNext()) {
-                tags.add(new Tag(rows.getString(0), rows.getString(1), rows.getString(2), null, rows.getString(3)));
+                tags.add(new Recipe.Tag(rows.getString(0), rows.getString(1), rows.getString(2), null, rows.getString(3)));
             }
         }
         return tags;
     }
 
-    private static Recipe addRecipe(SQLiteDatabase db, String id, boolean imported, String lang,
+    private static Recipe addRecipe(SQLiteDatabase db, String id, boolean imported,
                                     Map<String, Card> groups) throws IOException {
         String[] argument = {id};
         if (imported) {
-            try (Cursor rows = db.rawQuery(externalRows(lang) + " WHERE r.id=?", argument)) {
+            try (Cursor rows = db.rawQuery(externalRows() + " WHERE r.id=?", argument)) {
                 return rows.moveToFirst() ? addExternal(rows, groups) : null;
             }
         }
         try (Cursor row = db.rawQuery(
-                "SELECT r.family_id, f.name_" + lang + ", r.title_" + lang + ", r.minutes, r.servings FROM recipe r" +
+                "SELECT r.family_id, f.name_en, r.title_en, r.minutes, r.servings FROM recipe r" +
                 " JOIN family f ON f.id=r.family_id WHERE r.id=?", argument)) {
             if (!row.moveToFirst()) {
                 return null;
             }
             Recipe recipe = new Recipe(id, row.getString(2), row.getInt(3), row.getInt(4));
-            readIngredients(db, id, lang, null, recipe);
-            readSteps(db, id, lang, recipe);
+            readIngredients(db, id, null, recipe);
+            readSteps(db, id, recipe);
             String family = row.getString(1);
             groups.computeIfAbsent(row.getString(0), ignored -> new Card(family)).variants.add(recipe);
             return recipe;
         }
     }
 
-    private static String externalRows(String lang) {
-        return "SELECT r.id, r.family_id, r.title_" + lang + ", r.ingredients_" + lang + ", r.steps_" + lang +
-                ", r.minutes, r.servings, r.revision_url, r.license_url, f.title_" + lang +
-                ", f.summary_" + lang + " FROM offline_recipe r LEFT JOIN offline_family f ON f.id=r.family_id";
+    private static String externalRows() {
+        return "SELECT r.id, r.family_id, r.title_en, r.ingredients_en, r.steps_en," +
+                " r.minutes, r.servings, r.revision_url, r.license_url, f.title_en, f.summary_en" +
+                " FROM offline_recipe r LEFT JOIN offline_family f ON f.id=r.family_id";
     }
 
     private static boolean availableExternal(SQLiteDatabase db, String id, Set<String> available) {
@@ -414,7 +360,7 @@ final class RecipeCatalog {
         }
     }
 
-    private static Set<String> pantry(SQLiteDatabase db, String text, boolean includeBasics, boolean russian) {
+    private static Set<String> pantry(SQLiteDatabase db, String text, boolean includeBasics) {
         Map<String, String> names = new HashMap<>();
         Set<String> available = new HashSet<>();
         try (Cursor rows = db.rawQuery("SELECT id, name_ru, name_en, is_basic FROM ingredient", null)) {
@@ -428,15 +374,13 @@ final class RecipeCatalog {
             }
         }
         try (Cursor rows = db.rawQuery(
-                "SELECT alias, ingredient_id FROM ingredient_alias ORDER BY (language=?)",
-                new String[] {russian ? "ru" : "en"})) {
+                "SELECT alias, ingredient_id FROM ingredient_alias ORDER BY (language='en')", null)) {
             while (rows.moveToNext()) {
                 names.put(key(rows.getString(0)), rows.getString(1));
             }
         }
         try (Cursor rows = db.rawQuery(
-                "SELECT name, ingredient_key FROM offline_alias ORDER BY (language=?) DESC",
-                new String[] {russian ? "ru" : "en"})) {
+                "SELECT name, ingredient_key FROM offline_alias ORDER BY (language='en') DESC", null)) {
             while (rows.moveToNext()) {
                 names.putIfAbsent(key(rows.getString(0)), rows.getString(1));
             }
@@ -450,10 +394,10 @@ final class RecipeCatalog {
         return available;
     }
 
-    private static boolean readIngredients(SQLiteDatabase db, String id, String lang, Set<String> available,
+    private static boolean readIngredients(SQLiteDatabase db, String id, Set<String> available,
                                            Recipe recipe) {
         try (Cursor rows = db.rawQuery(
-                "SELECT i.id, i.name_" + lang + ", ri.amount, u.label_" + lang +
+                "SELECT i.id, i.name_en, ri.amount, u.id, u.label_en" +
                 " FROM recipe_ingredient ri JOIN ingredient i ON i.id=ri.ingredient_id" +
                 " JOIN unit u ON u.id=ri.unit_id WHERE ri.recipe_id=? ORDER BY ri.position",
                 new String[] {id})) {
@@ -461,15 +405,16 @@ final class RecipeCatalog {
                 if (available != null && !available.contains(rows.getString(0))) {
                     return false;
                 }
-                recipe.ingredients.add(new Ingredient(rows.getString(1), rows.getDouble(2), rows.getString(3)));
+                recipe.ingredients.add(new Recipe.Ingredient(rows.getString(1), rows.getDouble(2),
+                        rows.getString(3), rows.getString(4)));
             }
         }
         return !recipe.ingredients.isEmpty();
     }
 
-    private static void readSteps(SQLiteDatabase db, String id, String lang, Recipe recipe) {
+    private static void readSteps(SQLiteDatabase db, String id, Recipe recipe) {
         try (Cursor steps = db.rawQuery(
-                "SELECT text_" + lang + " FROM recipe_step WHERE recipe_id=? ORDER BY position",
+                "SELECT text_en FROM recipe_step WHERE recipe_id=? ORDER BY position",
                 new String[] {id})) {
             while (steps.moveToNext()) {
                 recipe.steps.add(steps.getString(0));

@@ -26,6 +26,28 @@ public class DiscoveryProbe {
             System.out.println(RecipeDiscovery.matchesTitle(RecipeDiscovery.key(args[1]), args[2], args[3]));
             return;
         }
+        if (args[0].equals("units")) {
+            RecipeUnits.System system = RecipeUnits.System.valueOf(args[1]);
+            for (int i = 2; i < args.length; i++) {
+                String source = new String(Base64.getDecoder().decode(args[i]), StandardCharsets.UTF_8);
+                System.out.println(Base64.getEncoder().encodeToString(
+                        RecipeUnits.formatText(source, system).getBytes(StandardCharsets.UTF_8)));
+            }
+            return;
+        }
+        if (args[0].equals("servings")) {
+            Recipe seed = new Recipe("seed", "Omelet", 10, 1);
+            seed.ingredients.add(new Recipe.Ingredient("cheese", 30, "g", "g"));
+            seed.ingredients.add(new Recipe.Ingredient("flour", 1, "cup", "cup(s)"));
+            Recipe imported = new Recipe("imported", "Stew", 40, 4);
+            imported.revisionUrl = "source";
+            imported.sourceIngredients.add("1 lb potatoes");
+            String result = String.join("\\n", seed.ingredientLines(2, RecipeUnits.System.IMPERIAL))
+                    + "\\n" + imported.servings(2) + "\\n"
+                    + String.join("\\n", imported.ingredientLines(2, RecipeUnits.System.METRIC));
+            System.out.println(Base64.getEncoder().encodeToString(result.getBytes(StandardCharsets.UTF_8)));
+            return;
+        }
         Map<String, Set<String>> filters = new LinkedHashMap<>();
         for (int i = 1; i < args.length; i += 2) {
             filters.computeIfAbsent(args[i], unused -> new LinkedHashSet<>()).add(args[i + 1]);
@@ -53,8 +75,10 @@ class RecipeDiscoveryTests(unittest.TestCase):
         cls.directory = Path(scratch.name)
         probe = cls.directory / "DiscoveryProbe.java"
         probe.write_text(PROBE, encoding="utf-8")
-        source = ROOT / "android/app/src/main/java/app/dinnerpicker/RecipeDiscovery.java"
-        subprocess.run([javac, "-encoding", "UTF-8", "--release", "17", "-d", cls.directory, source, probe], check=True)
+        source = ROOT / "android/app/src/main/java/app/dinnerpicker"
+        subprocess.run([javac, "-encoding", "UTF-8", "--release", "17", "-d", cls.directory,
+                        source / "RecipeDiscovery.java", source / "RecipeUnits.java", source / "Recipe.java", probe],
+                       check=True)
 
     def setUp(self):
         self.database = sqlite3.connect(":memory:")
@@ -108,3 +132,32 @@ class RecipeDiscoveryTests(unittest.TestCase):
                                                  text=True).strip(), "true")
         self.assertEqual(subprocess.check_output([*command, "BAKED    BEETS", "Запечённая свёкла", "Baked beets"],
                                                  text=True).strip(), "true")
+
+    def render_units(self, system, *lines):
+        encoded = [base64.b64encode(line.encode()).decode() for line in lines]
+        command = [self.java, "-cp", self.directory, "app.dinnerpicker.DiscoveryProbe", "units", system, *encoded]
+        return [base64.b64decode(line).decode() for line in subprocess.check_output(command, text=True).splitlines()]
+
+    def test_converts_ingredient_fractions_ranges_and_qualified_volumes(self):
+        self.assertEqual(self.render_units("METRIC", "1½ lb beef", "4-5 pounds potatoes", "1 / 2 lb butter",
+                                          "1 UK pint milk", "1 US pint milk", "2 tsp salt", "1 cup flour",
+                                          "1 pint water", "3 large eggs", "1 cup (240 mL) cream"),
+                         ["680.39 g beef", "1.81–2.27 kg potatoes", "226.8 g butter", "568.26 mL milk",
+                          "473.18 mL milk", "10 mL salt", "1 cup flour", "1 pint water", "3 large eggs", "240 mL cream"])
+        self.assertEqual(self.render_units("IMPERIAL", "100 g cheese", "250 mL (1 cup) water", "250 mL water",
+                                          "150 g (6 oz) margarine", "1 tbsp olive oil"),
+                         ["3.53 oz cheese", "8.8 UK fl oz water", "8.8 UK fl oz water", "150 g (6 oz) margarine",
+                          "1 tbsp olive oil"])
+
+    def test_converts_steps_without_changing_times_or_unrelated_numbers(self):
+        self.assertEqual(self.render_units("METRIC", "Bake at 350°F for 25 minutes.", "Bake at 350°F (180°C).",
+                                          "Use a 9 x 13 x 2-inch pan.", "Put 2 in each bowl."),
+                         ["Bake at 176.7 °C for 25 minutes.", "Bake at 180°C.",
+                          "Use a 22.86 × 33.02 × 5.08 cm pan.", "Put 2 in each bowl."])
+        self.assertEqual(self.render_units("IMPERIAL", "Chill from −18 to −10 °C.", "Cut a 2 cm border."),
+                         ["Chill from -0.4–14 °F.", "Cut a 0.79 in border."])
+
+    def test_scales_structured_quantities_but_keeps_imported_servings(self):
+        command = [self.java, "-cp", self.directory, "app.dinnerpicker.DiscoveryProbe", "servings"]
+        rendered = base64.b64decode(subprocess.check_output(command, text=True)).decode().splitlines()
+        self.assertEqual(rendered, ["cheese · 2.12 oz", "flour · 2 cup(s)", "4", "453.59 g potatoes"])

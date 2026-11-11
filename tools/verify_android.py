@@ -109,7 +109,7 @@ def verify_discovery(device):
     device.to_top()
 
 
-def verify_unified_search(device):
+def verify_unified_search(device, *, english_only=False):
     device.tap("Search recipes and tags", exact=True)
     device.shell("input", "text", "soup")
     device.find("Recipe ·", clickable=True)
@@ -135,10 +135,11 @@ def verify_unified_search(device):
     if int(expanded.get("text").split("·")[-1]) <= int(filtered.get("text").split("·")[-1]):
         raise RuntimeError("Removing the time limit did not expand the results.")
 
-    device.tap("Русский", exact=True)
-    device.find("Супы ×", exact=True)
-    device.find("Ужин ×", exact=True)
-    device.tap("English", exact=True)
+    if not english_only:
+        device.tap("Русский", exact=True)
+        device.find("Супы ×", exact=True)
+        device.find("Ужин ×", exact=True)
+        device.tap("English", exact=True)
 
     device.tap("Time", exact=True)
     device.tap("Up to 15 min", exact=True)
@@ -163,6 +164,13 @@ def verify_unified_search(device):
     suggestion = device.tap("Remove “Soups”", scroll=True)
     total = int(suggestion.get("text").split("·")[-1])
     device.find(f"Recipes found · {total}", exact=True)
+
+
+def switch_measurements(device, current, new):
+    device.tap(f"Measurement system · {current}", exact=True)
+    device.find("Measurement system", exact=True)
+    device.tap(new + " (")
+    device.find(f"Measurement system · {new}", exact=True)
 
 
 def verify(args):
@@ -193,11 +201,21 @@ def verify(args):
             device.tap("English")
         nodes = device.dump()
         unified = any(node.get("content-desc") == "Search recipes and tags" for node in nodes)
+        english_only = any(node.get("content-desc", "").startswith("Measurement system · ") for node in nodes)
+        if english_only and any(node.get("content-desc") == "Measurement system · Imperial" for node in nodes):
+            switch_measurements(device, "Imperial", "Metric")
         discovery = any(node.get("text") == "Ideas for today" for node in nodes)
         if unified:
-            verify_unified_search(device)
+            verify_unified_search(device, english_only=english_only)
             checks.extend(("live_search_tag_and_title_suggestions", "filter_chips_and_recipe_back_position",
-                           "language_switch_retains_tags", "time_and_category_refinements_with_exact_counts"))
+                           "time_and_category_refinements_with_exact_counts"))
+            if english_only:
+                device.find("What’s for dinner?", exact=True)
+                if any(n.get("text") in {"Русский", "English"} for n in device.dump()):
+                    raise RuntimeError("A language switch remains in the English interface.")
+                checks.append("english_interface_and_catalog")
+            else:
+                checks.append("language_switch_retains_tags")
             device.tap("Ideas", exact=True)
             device.tap("Search by ingredients", scroll=True, exact=True)
         elif discovery:
@@ -211,33 +229,47 @@ def verify(args):
         device.find("eggs · 4 pc(s)", scroll=True)
         checks.append("pantry_time_group_and_portions_en")
 
-        if unified:
+        if english_only:
+            device.find("cheese · 60 g", scroll=True)
+            device.find("vegetable oil · 10 mL", scroll=True)
+            switch_measurements(device, "Metric", "Imperial")
+            device.find("cheese · 2.12 oz", scroll=True)
+            device.find("vegetable oil · 2 tsp", scroll=True)
+            device.find("eggs · 4 pc(s)", scroll=True)
             device.tap("Back to results")
-        device.to_top()
-        device.tap("Русский")
-        device.find("Что на ужин?")
-        device.tap("Заполнить пример", scroll=True)
-        device.tap("Подобрать ужин", scroll=True)
-        device.find("Карточек:", scroll=True)
-        device.tap("Омлет с сыром", scroll=True)
-        device.find("яйца · 4 шт.", scroll=True)
-        checks.append("language_switch_and_pantry_ru")
-
-        if unified:
-            device.tap("К результатам")
-            device.tap("Идеи", exact=True)
-            device.tap("Весь каталог", scroll=True, exact=True)
-            heading = "Найдено блюд" if args.cards is None else f"Найдено блюд · {args.cards}"
+            device.find("Measurement system · Imperial", exact=True)
+            checks.append("measurement_switch_updates_open_recipe_and_preserves_scaled_servings")
+            device.tap("Ideas", exact=True)
+            device.tap("Browse all recipes", scroll=True, exact=True)
+            heading = "Recipes found" if args.cards is None else f"Recipes found · {args.cards}"
             device.find(heading, exact=args.cards is not None)
         else:
+            if unified:
+                device.tap("Back to results")
             device.to_top()
-            device.tap("Поиск по названию" if discovery else "Весь каталог", scroll=True)
-            device.tap("Все рецепты")
-            device.find(f"Каталог · найдено: {args.recipes}", scroll=True)
+            device.tap("Русский")
+            device.find("Что на ужин?")
+            device.tap("Заполнить пример", scroll=True)
+            device.tap("Подобрать ужин", scroll=True)
+            device.find("Карточек:", scroll=True)
+            device.tap("Омлет с сыром", scroll=True)
+            device.find("яйца · 4 шт.", scroll=True)
+            checks.append("language_switch_and_pantry_ru")
+            if unified:
+                device.tap("К результатам")
+                device.tap("Идеи", exact=True)
+                device.tap("Весь каталог", scroll=True, exact=True)
+                heading = "Найдено блюд" if args.cards is None else f"Найдено блюд · {args.cards}"
+                device.find(heading, exact=args.cards is not None)
+            else:
+                device.to_top()
+                device.tap("Поиск по названию" if discovery else "Весь каталог", scroll=True)
+                device.tap("Все рецепты")
+                device.find(f"Каталог · найдено: {args.recipes}", scroll=True)
+            device.to_top()
+            device.tap("English")
         checks.append("all_bundled_recipes_available_offline")
 
-        device.to_top()
-        device.tap("English")
         if unified:
             device.tap("Search recipes and tags", exact=True)
             device.shell("input", "text", args.query)
@@ -250,6 +282,18 @@ def verify(args):
         device.tap(args.recipe_title, scroll=True, widget="android.widget.Button")
         device.find("Source and authors · Wikibooks", scroll=True)
         checks.append("title_search_and_attribution_offline")
+        if english_only:
+            if args.recipe_title.casefold().startswith("polvorones"):
+                device.to_top()
+                device.find("350°F", scroll=True)
+                switch_measurements(device, "Imperial", "Metric")
+                device.find("180°C", scroll=True)
+                switch_measurements(device, "Metric", "Imperial")
+                checks.append("imported_recipe_uses_source_oven_temperature_in_each_system")
+            device.shell("am", "force-stop", PACKAGE)
+            device.shell("am", "start", "-W", "-n", ACTIVITY)
+            device.find("Measurement system · Imperial", exact=True)
+            checks.append("measurement_preference_survives_restart")
     finally:
         if emulator:
             if prior_airplane != "1":

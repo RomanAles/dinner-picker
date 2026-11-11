@@ -29,14 +29,12 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.io.IOException;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -48,12 +46,15 @@ public final class MainActivity extends Activity {
     private static final int INK = Color.rgb(39, 44, 34);
     private static final int GREEN = Color.rgb(54, 83, 59);
     private static final int PAGE_SIZE = 24;
+    private static final String MEASUREMENT_PREFERENCE = "measurement_system";
 
     private enum Screen { HOME, DISCOVERY, PANTRY }
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private SharedPreferences preferences;
-    private boolean russian;
+    private RecipeUnits.System measurementSystem;
+    private Button mainUnits;
+    private Button detailUnits;
     private Screen screen = Screen.HOME;
     private boolean pantrySearched;
     private String discoveryQuery = "";
@@ -91,7 +92,8 @@ public final class MainActivity extends Activity {
     public void onCreate(Bundle state) {
         super.onCreate(state);
         preferences = getSharedPreferences("settings", MODE_PRIVATE);
-        russian = preferences.getBoolean("russian", Locale.getDefault().getLanguage().equals("ru"));
+        measurementSystem = RecipeUnits.System.IMPERIAL.name().equals(preferences.getString(MEASUREMENT_PREFERENCE, ""))
+                ? RecipeUnits.System.IMPERIAL : RecipeUnits.System.METRIC;
         if (state != null) {
             String savedScreen = state.getString("screen", Screen.HOME.name());
             screen = "CATALOG".equals(savedScreen) ? Screen.DISCOVERY : Screen.valueOf(savedScreen);
@@ -154,10 +156,6 @@ public final class MainActivity extends Activity {
         } else {
             super.onBackPressed();
         }
-    }
-
-    private String t(String ru, String en) {
-        return russian ? ru : en;
     }
 
     private int dp(int value) {
@@ -233,19 +231,11 @@ public final class MainActivity extends Activity {
         LinearLayout header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(12), 0, dp(8), 0);
-        header.addView(text(t("Что на ужин?", "What’s for dinner?"), 23, true),
+        header.addView(text("What’s for dinner?", 23, true),
                 new LinearLayout.LayoutParams(0, -2, 1));
-        header.addView(chip(t("Идеи", "Ideas"), false, this::openHome));
-        header.addView(chip(t("English", "Русский"), false, () -> {
-            int position = scroll.getScrollY();
-            queryField.removeCallbacks(submitQuery);
-            dismissKeyboard();
-            russian = !russian;
-            preferences.edit().putBoolean("russian", russian).apply();
-            requestNumber++;
-            render(value(pantry), value(minutes), value(servings), basics.isChecked());
-            restoreResults(position);
-        }));
+        header.addView(chip("Ideas", false, this::openHome));
+        mainUnits = unitsChip(null);
+        header.addView(mainUnits);
         mainScreen.addView(header);
         addSearchControls(mainScreen);
 
@@ -282,22 +272,22 @@ public final class MainActivity extends Activity {
     }
 
     private void addIdeas(LinearLayout page) {
-        page.addView(text(t("Идеи на сегодня", "Ideas for today"), 19, true));
+        page.addView(text("Ideas for today", 19, true));
         addChoices(page, Arrays.asList(
-                preset(t("Уютный ужин", "Cozy dinner"), null, "mood", "cozy", "meal", "dinner"),
-                preset(t("Простой завтрак", "Easy breakfast"), null, "meal", "breakfast", "difficulty", "easy"),
-                preset(t("Выпечка к чаю", "Baking for tea"), null, "dish_type", "baking", "occasion", "tea"),
-                preset(t("Быстрый обед", "Quick lunch"), 20, "meal", "lunch"),
-                preset(t("Для гостей", "For guests"), null, "occasion", "guests"),
-                preset(t("Новый вкус", "Something new"), null, "novelty", "discovery")));
+                preset("Cozy dinner", null, "mood", "cozy", "meal", "dinner"),
+                preset("Easy breakfast", null, "meal", "breakfast", "difficulty", "easy"),
+                preset("Baking for tea", null, "dish_type", "baking", "occasion", "tea"),
+                preset("Quick lunch", 20, "meal", "lunch"),
+                preset("For guests", null, "occasion", "guests"),
+                preset("Something new", null, "novelty", "discovery")));
 
-        Button all = button(t("Весь каталог", "Browse all recipes"), true);
+        Button all = button("Browse all recipes", true);
         all.setOnClickListener(view -> {
             setQuery("");
             applyFilters(Collections.emptyMap(), null);
         });
         page.addView(all);
-        Button byIngredients = button(t("Подбор по продуктам", "Search by ingredients"), false);
+        Button byIngredients = button("Search by ingredients", false);
         byIngredients.setOnClickListener(view -> {
             openScreen(Screen.PANTRY);
             restoreResults(0);
@@ -314,8 +304,8 @@ public final class MainActivity extends Activity {
         searchBar.setGravity(Gravity.CENTER_VERTICAL);
         queryField = field(discoveryQuery, InputType.TYPE_CLASS_TEXT);
         queryField.setSingleLine(true);
-        queryField.setHint(t("Название блюда или тег", "Recipe name or tag"));
-        queryField.setContentDescription(t("Поиск блюд и тегов", "Search recipes and tags"));
+        queryField.setHint("Recipe name or tag");
+        queryField.setContentDescription("Search recipes and tags");
         queryField.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         searchBar.addView(queryField, new LinearLayout.LayoutParams(0, -2, 1));
         clearQuery = chip("×", false, () -> {
@@ -323,9 +313,9 @@ public final class MainActivity extends Activity {
             dismissKeyboard();
             discover(0, 0);
         });
-        clearQuery.setContentDescription(t("Очистить строку поиска", "Clear search text"));
+        clearQuery.setContentDescription("Clear search text");
         searchBar.addView(clearQuery);
-        Button allFilters = chip(t("Все фильтры", "All filters"), false, this::editFilters);
+        Button allFilters = chip("All filters", false, this::editFilters);
         searchBar.addView(allFilters);
         controls.addView(searchBar);
 
@@ -334,10 +324,10 @@ public final class MainActivity extends Activity {
         LinearLayout shortcuts = new LinearLayout(this);
         strip(controls, shortcuts);
         List<Button> categoryButtons = new ArrayList<>();
-        categoryButtons.add(addChip(shortcuts, t("Тип блюда", "Dish type"), false, () -> chooseCategory("dish_type")));
-        categoryButtons.add(addChip(shortcuts, t("Приём пищи", "Meal"), false, () -> chooseCategory("meal")));
-        categoryButtons.add(addChip(shortcuts, t("Настроение", "Mood"), false, () -> chooseCategory("mood")));
-        addChip(shortcuts, t("Время", "Time"), false, this::chooseTime);
+        categoryButtons.add(addChip(shortcuts, "Dish type", false, () -> chooseCategory("dish_type")));
+        categoryButtons.add(addChip(shortcuts, "Meal", false, () -> chooseCategory("meal")));
+        categoryButtons.add(addChip(shortcuts, "Mood", false, () -> chooseCategory("mood")));
+        addChip(shortcuts, "Time", false, this::chooseTime);
         categoryButtons.add(allFilters);
         categoryButtons.forEach(button -> button.setEnabled(false));
         selectedRow = new LinearLayout(this);
@@ -372,10 +362,9 @@ public final class MainActivity extends Activity {
         });
 
         EditText input = queryField;
-        boolean language = russian;
         worker.execute(() -> {
             try {
-                List<RecipeCatalog.TagAxis> axes = RecipeCatalog.discoveryAxes(getApplicationContext(), language);
+                List<RecipeCatalog.TagAxis> axes = RecipeCatalog.discoveryAxes(getApplicationContext());
                 runOnUiThread(() -> {
                     if (!isDestroyed() && queryField == input) {
                         tagAxes = axes;
@@ -386,7 +375,7 @@ public final class MainActivity extends Activity {
             } catch (IOException | android.database.SQLException error) {
                 runOnUiThread(() -> {
                     if (!isDestroyed() && queryField == input) {
-                        status.setText(t("Не удалось загрузить теги.", "Could not load tags."));
+                        status.setText("Could not load tags.");
                     }
                 });
             }
@@ -440,10 +429,10 @@ public final class MainActivity extends Activity {
         if (queryField.hasFocus() && !query.isEmpty()) {
             int found = 0;
             for (RecipeCatalog.TagAxis axis : tagAxes) {
-                for (RecipeCatalog.Tag tag : axis.tags) {
+                for (Recipe.Tag tag : axis.tags) {
                     if (found < 3 && !isSelected(axis.id, tag.id)
                             && RecipeDiscovery.matchesTitle(query, tag.label, tag.alternateLabel)) {
-                        addChip(hintRow, t("Тег · ", "Tag · ") + tag.label, false, () -> {
+                        addChip(hintRow, "Tag · " + tag.label, false, () -> {
                             setQuery("");
                             changeTag(axis, tag.id, true);
                         });
@@ -452,7 +441,7 @@ public final class MainActivity extends Activity {
                 }
             }
             for (String title : new LinkedHashSet<>(titleHints)) {
-                addChip(hintRow, t("Блюдо · ", "Recipe · ") + title, false, () -> {
+                addChip(hintRow, "Recipe · " + title, false, () -> {
                     setQuery(title);
                     dismissKeyboard();
                     discover(0, 0);
@@ -524,7 +513,7 @@ public final class MainActivity extends Activity {
     private void updateSelection() {
         selectedRow.removeAllViews();
         for (RecipeCatalog.TagAxis axis : tagAxes) {
-            for (RecipeCatalog.Tag tag : axis.tags) {
+            for (Recipe.Tag tag : axis.tags) {
                 if (isSelected(axis.id, tag.id)) {
                     addRemovalChip(tag.label, () -> changeTag(axis, tag.id, false));
                 }
@@ -534,7 +523,7 @@ public final class MainActivity extends Activity {
             addRemovalChip(timeLabel(discoveryTime), () -> applyFilters(selectedTags, null));
         }
         if (selectedRow.getChildCount() > 0) {
-            addChip(selectedRow, t("Сбросить фильтры", "Clear filters"), false,
+            addChip(selectedRow, "Clear filters", false,
                     () -> applyFilters(Collections.emptyMap(), null));
         }
         selectedStrip.setVisibility(selectedRow.getChildCount() == 0 ? View.GONE : View.VISIBLE);
@@ -543,7 +532,7 @@ public final class MainActivity extends Activity {
 
     private void addRemovalChip(String label, Runnable remove) {
         Button button = addChip(selectedRow, label + " ×", true, remove);
-        button.setContentDescription(t("Снять фильтр «", "Remove filter “") + label + t("»", "”"));
+        button.setContentDescription("Remove filter “" + label + "”");
     }
 
     private boolean isSelected(String axis, String tag) {
@@ -580,7 +569,7 @@ public final class MainActivity extends Activity {
         boolean[] checked = new boolean[labels.length];
         int selected = 0;
         for (int i = 0; i < labels.length; i++) {
-            RecipeCatalog.Tag tag = axis.tags.get(i);
+            Recipe.Tag tag = axis.tags.get(i);
             labels[i] = tag.label;
             checked[i] = isSelected(axis.id, tag.id);
             if (checked[i]) {
@@ -590,10 +579,10 @@ public final class MainActivity extends Activity {
         if (axis.multiple) {
             menu.setMultiChoiceItems(labels, checked, (dialog, which, enabled) ->
                     changeTag(axis, axis.tags.get(which).id, enabled));
-            menu.setPositiveButton(t("Готово", "Done"), null);
+            menu.setPositiveButton("Done", null);
         } else {
             String[] options = new String[labels.length + 1];
-            options[0] = t("Любой вариант", "Any option");
+            options[0] = "Any option";
             System.arraycopy(labels, 0, options, 1, labels.length);
             menu.setSingleChoiceItems(options, selected, (dialog, which) -> {
                 dialog.dismiss();
@@ -629,16 +618,16 @@ public final class MainActivity extends Activity {
             options.add(discoveryTime);
         }
         String[] labels = options.stream().map(this::timeLabel).toArray(String[]::new);
-        new AlertDialog.Builder(this).setTitle(t("Время приготовления", "Cooking time"))
+        new AlertDialog.Builder(this).setTitle("Cooking time")
                 .setSingleChoiceItems(labels, options.indexOf(discoveryTime), (dialog, which) -> {
                     dialog.dismiss();
                     applyFilters(selectedTags, options.get(which));
-                }).setNegativeButton(t("Отмена", "Cancel"), null).show();
+                }).setNegativeButton("Cancel", null).show();
     }
 
     private String timeLabel(Integer minutes) {
-        return minutes == null ? t("Без ограничения", "No time limit")
-                : t("До ", "Up to ") + minutes + t(" мин", " min");
+        return minutes == null ? "No time limit"
+                : "Up to " + minutes + " min";
     }
 
     private void editFilters() {
@@ -651,18 +640,18 @@ public final class MainActivity extends Activity {
         form.setFocusableInTouchMode(true);
         window.addView(form);
 
-        form.addView(text(t("Максимум минут", "Maximum minutes"), 16, true));
+        form.addView(text("Maximum minutes", 16, true));
         EditText time = field(discoveryTime == null ? "" : discoveryTime.toString(), InputType.TYPE_CLASS_NUMBER);
         time.setSingleLine(true);
-        time.setHint(t("Без ограничения", "No limit"));
-        time.setContentDescription(t("Максимум минут для подбора", "Maximum minutes for discovery"));
+        time.setHint("No limit");
+        time.setContentDescription("Maximum minutes for discovery");
         form.addView(time);
-        form.addView(text(t("Можно пропустить любую категорию.", "You can skip any category."), 15, false));
+        form.addView(text("You can skip any category.", 15, false));
         for (RecipeCatalog.TagAxis axis : tagAxes) {
             form.addView(text(axis.label, 17, true));
             Set<String> chosen = draft.computeIfAbsent(axis.id, id -> new LinkedHashSet<>());
             List<CheckBox> choices = new ArrayList<>();
-            for (RecipeCatalog.Tag tag : axis.tags) {
+            for (Recipe.Tag tag : axis.tags) {
                 CheckBox check = new CheckBox(this);
                 check.setText(tag.label);
                 check.setTextColor(INK);
@@ -689,10 +678,10 @@ public final class MainActivity extends Activity {
         }
 
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(t("Подбор по тегам", "Find by tags"))
+                .setTitle("Find by tags")
                 .setView(window)
-                .setPositiveButton(t("Показать блюда", "Show recipes"), null)
-                .setNegativeButton(t("Отмена", "Cancel"), null)
+                .setPositiveButton("Show recipes", null)
+                .setNegativeButton("Cancel", null)
                 .create();
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         dialog.show();
@@ -707,7 +696,7 @@ public final class MainActivity extends Activity {
                         throw new NumberFormatException();
                     }
                 } catch (NumberFormatException error) {
-                    time.setError(t("Укажи положительное число минут.", "Enter a positive number of minutes."));
+                    time.setError("Enter a positive number of minutes.");
                     time.requestFocus();
                     return;
                 }
@@ -732,15 +721,14 @@ public final class MainActivity extends Activity {
         screen = Screen.DISCOVERY;
         updateScreen();
         pageOffset = offset;
-        status.setText(t("Ищем подходящие блюда…", "Finding matching recipes…"));
+        status.setText("Finding matching recipes…");
         String title = discoveryQuery;
         Map<String, Set<String>> tags = selectedTags;
         Integer time = discoveryTime;
-        boolean language = russian;
         worker.execute(() -> {
             try {
                 RecipeCatalog.CatalogPage page = RecipeCatalog.discover(
-                        getApplicationContext(), title, tags, time, offset, PAGE_SIZE, language);
+                        getApplicationContext(), title, tags, time, offset, PAGE_SIZE);
                 runOnUiThread(() -> {
                     if (isDestroyed() || id != requestNumber) {
                         return;
@@ -749,19 +737,18 @@ public final class MainActivity extends Activity {
                     titleHints = page.titleHints;
                     updateHints();
                     boolean noExact = page.total == 0 || page.partial;
-                    status.setText(noExact ? t("Точных совпадений нет", "No exact matches")
-                            : t("Найдено блюд · ", "Recipes found · ") + page.total);
+                    status.setText(noExact ? "No exact matches"
+                            : "Recipes found · " + page.total);
                     showRefinements(page.refinements);
                     if (page.partial) {
-                        results.addView(text(t("Близкие варианты · ", "Similar recipes · ") + page.total, 17, true));
+                        results.addView(text("Similar recipes · " + page.total, 17, true));
                     }
                     if (page.total > 0) {
                         showCards(page.cards, 0);
                         paginate(offset, page.total, next -> discover(next, 0));
                     }
                     if (page.total == 0 && page.refinements.isEmpty()) {
-                        results.addView(text(t("Попробуй другое название или сбрось фильтры.",
-                                "Try another recipe name or clear the filters."), 15, false));
+                        results.addView(text("Try another recipe name or clear the filters.", 15, false));
                     }
                     restoreScroll(id, position);
                 });
@@ -777,8 +764,8 @@ public final class MainActivity extends Activity {
             Runnable apply;
             switch (option.change()) {
                 case TIME -> {
-                    action = option.minutes() == null ? t("Снять лимит времени", "Remove time limit")
-                            : t("Увеличить время до ", "Increase time to ") + option.minutes() + t(" мин", " min");
+                    action = option.minutes() == null ? "Remove time limit"
+                            : "Increase time to " + option.minutes() + " min";
                     apply = () -> applyFilters(selectedTags, option.minutes());
                 }
                 case CATEGORY -> {
@@ -789,18 +776,18 @@ public final class MainActivity extends Activity {
                     String label = axis.label;
                     Set<String> selected = selectedTags.get(axis.id);
                     if (selected != null && selected.size() == 1) {
-                        for (RecipeCatalog.Tag tag : axis.tags) {
+                        for (Recipe.Tag tag : axis.tags) {
                             if (selected.contains(tag.id)) {
                                 label = tag.label;
                                 break;
                             }
                         }
                     }
-                    action = t("Убрать «", "Remove “") + label + t("»", "”");
+                    action = "Remove “" + label + "”";
                     apply = () -> removeCategory(axis.id);
                 }
                 case TITLE -> {
-                    action = t("Очистить название", "Clear recipe name");
+                    action = "Clear recipe name";
                     apply = () -> {
                         setQuery("");
                         dismissKeyboard();
@@ -810,7 +797,7 @@ public final class MainActivity extends Activity {
                 default -> throw new AssertionError(option.change());
             }
             Button suggestion = button(action + " · " + option.total(), false);
-            suggestion.setContentDescription(action + t(" · блюд ", " · recipes ") + option.total());
+            suggestion.setContentDescription(action + " · recipes " + option.total());
             suggestion.setOnClickListener(view -> apply.run());
             results.addView(suggestion);
         }
@@ -826,16 +813,15 @@ public final class MainActivity extends Activity {
 
     private void addPantryControls(LinearLayout panel, String products, String time,
                                    String portions, boolean includeBasics) {
-        panel.addView(text(t("Подбор по продуктам", "Search by ingredients"), 19, true));
+        panel.addView(text("Search by ingredients", 19, true));
         pantry = field(products, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         pantry.setMinLines(2);
-        pantry.setHint(t("Яйца, помидоры, сыр…", "Eggs, tomatoes, cheese…"));
-        pantry.setContentDescription(t("Доступные продукты", "Available ingredients"));
+        pantry.setHint("Eggs, tomatoes, cheese…");
+        pantry.setContentDescription("Available ingredients");
         panel.addView(pantry);
-        Button demo = button(t("Заполнить пример", "Use an example"), false);
+        Button demo = button("Use an example", false);
         demo.setOnClickListener(view -> {
-            pantry.setText(t("яйца, помидоры, сыр, макароны, чеснок, хлеб, огурцы",
-                    "eggs, tomatoes, cheese, pasta, garlic, bread, cucumbers"));
+            pantry.setText("eggs, tomatoes, cheese, pasta, garlic, bread, cucumbers");
             minutes.setText("20");
             servings.setText("2");
             basics.setChecked(true);
@@ -849,20 +835,20 @@ public final class MainActivity extends Activity {
         fields.addView(timeColumn, new LinearLayout.LayoutParams(0, -2, 1));
         fields.addView(servingsColumn, new LinearLayout.LayoutParams(0, -2, 1));
         minutes = field(time, InputType.TYPE_CLASS_NUMBER);
-        minutes.setContentDescription(t("Максимум минут", "Maximum minutes"));
+        minutes.setContentDescription("Maximum minutes");
         servings = field(portions, InputType.TYPE_CLASS_NUMBER);
-        servings.setContentDescription(t("Число порций", "Number of servings"));
-        timeColumn.addView(text(t("До, мин", "Up to, min"), 15, true));
+        servings.setContentDescription("Number of servings");
+        timeColumn.addView(text("Up to, min", 15, true));
         timeColumn.addView(minutes);
-        servingsColumn.addView(text(t("Порций", "Servings"), 15, true));
+        servingsColumn.addView(text("Servings", 15, true));
         servingsColumn.addView(servings);
         panel.addView(fields);
 
         basics = new CheckBox(this);
-        basics.setText(t("Есть вода, соль и растительное масло", "Include water, salt and vegetable oil"));
+        basics.setText("Include water, salt and vegetable oil");
         basics.setChecked(includeBasics);
         panel.addView(basics);
-        Button submit = button(t("Подобрать ужин", "Find dinner"), true);
+        Button submit = button("Find dinner", true);
         submit.setOnClickListener(view -> search(-1));
         panel.addView(submit);
     }
@@ -882,7 +868,7 @@ public final class MainActivity extends Activity {
         results.removeAllViews();
         String ingredients = value(pantry);
         if (ingredients.replaceAll("[,;\\s]+", "").isEmpty()) {
-            status.setText(t("Добавь хотя бы один продукт.", "Enter at least one ingredient."));
+            status.setText("Enter at least one ingredient.");
             return;
         }
         int limit;
@@ -894,16 +880,15 @@ public final class MainActivity extends Activity {
                 throw new NumberFormatException();
             }
         } catch (NumberFormatException error) {
-            status.setText(t("Укажи 5–120 минут и 1–6 порций.", "Enter 5–120 minutes and 1–6 servings."));
+            status.setText("Enter 5–120 minutes and 1–6 servings.");
             return;
         }
-        status.setText(t("Ищем рецепты…", "Finding recipes…"));
+        status.setText("Finding recipes…");
         boolean includeBasics = basics.isChecked();
-        boolean language = russian;
         worker.execute(() -> {
             try {
                 List<RecipeCatalog.Card> cards = RecipeCatalog.find(
-                        getApplicationContext(), ingredients, limit, includeBasics, language);
+                        getApplicationContext(), ingredients, limit, includeBasics);
                 runOnUiThread(() -> {
                     if (!isDestroyed() && id == requestNumber) {
                         showResults(cards, people);
@@ -918,12 +903,12 @@ public final class MainActivity extends Activity {
 
     private void paginate(int offset, int total, IntConsumer open) {
         if (offset > 0) {
-            Button previous = button(t("Предыдущая страница", "Previous page"), false);
+            Button previous = button("Previous page", false);
             previous.setOnClickListener(view -> open.accept(Math.max(0, offset - PAGE_SIZE)));
             results.addView(previous);
         }
         if (offset + PAGE_SIZE < total) {
-            Button next = button(t("Следующая страница", "Next page"), false);
+            Button next = button("Next page", false);
             next.setOnClickListener(view -> open.accept(offset + PAGE_SIZE));
             results.addView(next);
         }
@@ -933,18 +918,17 @@ public final class MainActivity extends Activity {
         runOnUiThread(() -> {
             if (!isDestroyed() && id == requestNumber) {
                 results.removeAllViews();
-                status.setText(t("Не удалось прочитать локальный каталог.", "Could not read the local catalog."));
+                status.setText("Could not read the local catalog.");
             }
         });
     }
 
     private void showResults(List<RecipeCatalog.Card> cards, int people) {
         if (cards.isEmpty()) {
-            status.setText(t("Подходящих блюд нет. Попробуй добавить продукты или увеличить время.",
-                    "No matching recipes. Try adding ingredients or increasing the time."));
+            status.setText("No matching recipes. Try adding ingredients or increasing the time.");
             return;
         }
-        status.setText(t("Карточек: ", "Recipe cards: ") + cards.size());
+        status.setText("Recipe cards: " + cards.size());
         showCards(cards, people);
     }
 
@@ -961,13 +945,13 @@ public final class MainActivity extends Activity {
                 item.addView(text(card.label(), 21, true));
             }
             if (card.variants.size() > 1) {
-                item.addView(text(t("Вариантов: ", "Variants: ") + card.variants.size(), 14, false));
+                item.addView(text("Variants: " + card.variants.size(), 14, false));
                 if (card.summary != null && !card.summary.isEmpty()) {
                     item.addView(text(card.summary, 15, false));
                 }
             }
-            for (RecipeCatalog.Recipe recipe : card.variants) {
-                String label = recipe.minutes > 0 ? recipe.title + " · " + recipe.minutes + t(" мин", " min")
+            for (Recipe recipe : card.variants) {
+                String label = recipe.minutes > 0 ? recipe.title + " · " + recipe.minutes + " min"
                         : recipe.title;
                 Button details = button(label, false);
                 if (discovery && card.variants.size() == 1) {
@@ -982,7 +966,39 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private void showRecipe(RecipeCatalog.Recipe recipe, int people) {
+    private Button unitsChip(Runnable onChange) {
+        Button units = chip("", false, () -> chooseUnits(onChange));
+        updateUnitsChip(units);
+        return units;
+    }
+
+    private void updateUnitsChip(Button button) {
+        String label = measurementSystem == RecipeUnits.System.METRIC ? "Metric" : "Imperial";
+        button.setText(label);
+        button.setContentDescription("Measurement system · " + label);
+    }
+
+    private void chooseUnits(Runnable onChange) {
+        dismissKeyboard();
+        RecipeUnits.System[] systems = RecipeUnits.System.values();
+        new AlertDialog.Builder(this).setTitle("Measurement system")
+                .setSingleChoiceItems(new String[] {"Metric (g, mL, °C)", "Imperial (lb, oz, UK fl oz, °F)"},
+                        measurementSystem.ordinal(), (dialog, which) -> {
+                            measurementSystem = systems[which];
+                            preferences.edit().putString(MEASUREMENT_PREFERENCE, measurementSystem.name()).apply();
+                            updateUnitsChip(mainUnits);
+                            if (detailUnits != null) {
+                                updateUnitsChip(detailUnits);
+                            }
+                            if (onChange != null) {
+                                onChange.run();
+                            }
+                            dialog.dismiss();
+                        })
+                .setNegativeButton("Cancel", null).show();
+    }
+
+    private void showRecipe(Recipe recipe, int people) {
         dismissKeyboard();
         openRecipeId = recipe.id;
         openRecipeServings = people;
@@ -990,16 +1006,21 @@ public final class MainActivity extends Activity {
         page.setBackgroundColor(PAPER);
         page.setPadding(dp(14), dp(8), dp(14), dp(8));
         page.setFocusableInTouchMode(true);
-        Button back = chip(t("← К результатам", "← Back to results"), false, this::closeRecipe);
-        page.addView(back);
+        LinearLayout actions = new LinearLayout(this);
+        actions.setGravity(Gravity.CENTER_VERTICAL);
+        Button back = chip("← Back to results", false, this::closeRecipe);
+        actions.addView(back, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView body = text(recipeText(recipe, people), 16, false);
+        detailUnits = unitsChip(() -> body.setText(recipeText(recipe, people)));
+        actions.addView(detailUnits);
+        page.addView(actions);
         ScrollView details = new ScrollView(this);
         LinearLayout content = column();
         content.setPadding(dp(4), dp(8), dp(4), dp(24));
         content.addView(text(recipe.title, 27, true));
         if (recipe.minutes > 0) {
-            content.addView(text(recipe.minutes + t(" мин", " min"), 16, false));
+            content.addView(text(recipe.minutes + " min", 16, false));
         }
-        TextView body = text(recipeText(recipe, people), 16, false);
         body.setTextIsSelectable(true);
         content.addView(body);
         details.addView(content);
@@ -1015,6 +1036,7 @@ public final class MainActivity extends Activity {
         if (detailScreen != null) {
             root.removeView(detailScreen);
             detailScreen = null;
+            detailUnits = null;
             mainScreen.setVisibility(View.VISIBLE);
         }
     }
@@ -1025,16 +1047,15 @@ public final class MainActivity extends Activity {
         }
         String id = openRecipeId;
         int people = openRecipeServings;
-        boolean language = russian;
         FrameLayout surface = root;
         worker.execute(() -> {
-            RecipeCatalog.Recipe restored;
+            Recipe restored;
             try {
-                restored = RecipeCatalog.recipe(getApplicationContext(), id, language);
+                restored = RecipeCatalog.recipe(getApplicationContext(), id);
             } catch (IOException | android.database.SQLException error) {
                 restored = null;
             }
-            RecipeCatalog.Recipe recipe = restored;
+            Recipe recipe = restored;
             runOnUiThread(() -> {
                 if (!isDestroyed() && root == surface && id.equals(openRecipeId)) {
                     if (recipe != null) {
@@ -1047,9 +1068,9 @@ public final class MainActivity extends Activity {
         });
     }
 
-    private void addVariantTags(LinearLayout item, RecipeCatalog.Recipe recipe) {
+    private void addVariantTags(LinearLayout item, Recipe recipe) {
         Set<String> labels = new LinkedHashSet<>();
-        for (RecipeCatalog.Tag tag : recipe.tags) {
+        for (Recipe.Tag tag : recipe.tags) {
             if ("dish_type".equals(tag.axisId) || "difficulty".equals(tag.axisId)
                     || selectedTags.getOrDefault(tag.axisId, Collections.emptySet()).contains(tag.id)) {
                 labels.add(tag.label);
@@ -1065,19 +1086,16 @@ public final class MainActivity extends Activity {
                     missing.add(axis.label);
                 }
             }
-            item.addView(text(t("Не совпало · ", "Did not match · ") + String.join(", ", missing), 14, true));
+            item.addView(text("Did not match · " + String.join(", ", missing), 14, true));
         }
     }
 
-    private String recipeText(RecipeCatalog.Recipe recipe, int people) {
-        boolean external = recipe.revisionUrl != null;
-        int portionCount = people > 0 && !external ? people : recipe.baseServings;
-        NumberFormat number = NumberFormat.getNumberInstance(Locale.forLanguageTag(t("ru", "en")));
-        number.setMaximumFractionDigits(2);
+    private String recipeText(Recipe recipe, int people) {
+        int portionCount = recipe.servings(people);
         StringBuilder body = new StringBuilder();
         if (!recipe.tags.isEmpty()) {
             List<String> labels = new ArrayList<>();
-            for (RecipeCatalog.Tag tag : recipe.tags) {
+            for (Recipe.Tag tag : recipe.tags) {
                 if (tag.note == null) {
                     labels.add(tag.label);
                 } else {
@@ -1089,31 +1107,22 @@ public final class MainActivity extends Activity {
             }
             body.append('\n');
         }
-        if (external) {
-            body.append(t("Количество по источнику", "Original quantities"));
-            if (portionCount > 0) {
-                body.append(t(" · порций: ", " · servings: ")).append(portionCount);
-            }
-            body.append('\n');
-            for (String ingredient : recipe.sourceIngredients) {
-                body.append("• ").append(ingredient).append('\n');
-            }
-        } else {
-            body.append(t("Порций: ", "Servings: ")).append(portionCount).append('\n');
-            for (RecipeCatalog.Ingredient ingredient : recipe.ingredients) {
-                body.append("• ").append(ingredient.name).append(" · ")
-                        .append(number.format(ingredient.amount * portionCount / recipe.baseServings))
-                        .append(' ').append(ingredient.unit).append('\n');
-            }
+        body.append("Ingredients");
+        if (portionCount > 0) {
+            body.append(" · Servings ").append(portionCount);
         }
-        body.append('\n').append(t("Приготовление", "Method")).append('\n');
+        body.append('\n');
+        for (String ingredient : recipe.ingredientLines(people, measurementSystem)) {
+            body.append("• ").append(ingredient).append('\n');
+        }
+        body.append('\n').append("Method").append('\n');
         for (int i = 0; i < recipe.steps.size(); i++) {
-            body.append(i + 1).append(". ").append(recipe.steps.get(i)).append('\n');
+            body.append(i + 1).append(". ").append(RecipeUnits.formatText(recipe.steps.get(i), measurementSystem)).append('\n');
         }
-        if (external) {
-            body.append('\n').append(t("Источник и авторы · Wikibooks", "Source and authors · Wikibooks"))
+        if (recipe.isImported()) {
+            body.append('\n').append("Source and authors · Wikibooks")
                     .append('\n').append(recipe.revisionUrl)
-                    .append('\n').append(t("Адаптация и перевод · CC BY-SA 4.0", "Adaptation and translation · CC BY-SA 4.0"))
+                    .append('\n').append("Adaptation and translation · CC BY-SA 4.0")
                     .append('\n').append(recipe.licenseUrl);
         }
         return body.toString().trim();
