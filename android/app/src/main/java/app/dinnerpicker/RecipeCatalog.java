@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,7 +20,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,6 +37,7 @@ final class RecipeCatalog {
     }
 
     static final class Recipe {
+        final String id;
         final String title;
         final int minutes;
         final int baseServings;
@@ -50,7 +49,8 @@ final class RecipeCatalog {
         List<Tag> tags = Collections.emptyList();
         List<String> missingTagAxes = Collections.emptyList();
 
-        Recipe(String title, int minutes, int baseServings) {
+        Recipe(String id, String title, int minutes, int baseServings) {
+            this.id = id;
             this.title = title;
             this.minutes = minutes;
             this.baseServings = baseServings;
@@ -75,17 +75,22 @@ final class RecipeCatalog {
         final List<Card> cards;
         final int total;
         final boolean partial;
+        final List<String> titleHints;
+        final List<Refinement> refinements;
 
-        CatalogPage(List<Card> cards, int total) {
-            this(cards, total, false);
-        }
-
-        CatalogPage(List<Card> cards, int total, boolean partial) {
+        CatalogPage(List<Card> cards, int total, boolean partial, List<String> titleHints,
+                    List<Refinement> refinements) {
             this.cards = cards;
             this.total = total;
             this.partial = partial;
+            this.titleHints = titleHints;
+            this.refinements = refinements;
         }
     }
+
+    enum Change { TIME, CATEGORY, TITLE }
+
+    record Refinement(Change change, String axis, Integer minutes, int total) {}
 
     static final class TagAxis {
         final String id;
@@ -104,27 +109,20 @@ final class RecipeCatalog {
         final String axisId;
         final String id;
         final String label;
+        final String alternateLabel;
         final String note;
 
-        Tag(String axisId, String id, String label, String note) {
+        Tag(String axisId, String id, String label, String alternateLabel, String note) {
             this.axisId = axisId;
             this.id = id;
             this.label = label;
+            this.alternateLabel = alternateLabel;
             this.note = note;
         }
     }
 
-    private static final class Match {
-        final String id;
-        final boolean imported;
-        final List<String> missingAxes;
-
-        Match(String id, boolean imported, List<String> missingAxes) {
-            this.id = id;
-            this.imported = imported;
-            this.missingAxes = missingAxes;
-        }
-    }
+    private record Match(String id, boolean imported, String titleRu, String titleEn, int minutes,
+                         List<String> missingAxes) {}
 
     private RecipeCatalog() {}
 
@@ -150,8 +148,7 @@ final class RecipeCatalog {
     }
 
     static String key(String value) {
-        return Normalizer.normalize(value, Normalizer.Form.NFC).toLowerCase(Locale.ROOT)
-                .replace('ё', 'е').trim().replaceAll("[\\s\\p{Z}]+", " ");
+        return RecipeDiscovery.key(value);
     }
 
     static List<Card> find(Context context, String text, int minutes, boolean includeBasics, boolean russian)
@@ -168,7 +165,7 @@ final class RecipeCatalog {
                     new String[] {Integer.toString(minutes)})) {
                 while (rows.moveToNext()) {
                     String id = rows.getString(0);
-                    Recipe recipe = new Recipe(rows.getString(3), rows.getInt(4), rows.getInt(5));
+                    Recipe recipe = new Recipe(id, rows.getString(3), rows.getInt(4), rows.getInt(5));
                     if (!readIngredients(db, id, lang, available, recipe)) {
                         continue;
                     }
@@ -192,35 +189,9 @@ final class RecipeCatalog {
         }
     }
 
-    static CatalogPage browse(Context context, String search, int offset, int limit, boolean russian)
-            throws IOException {
-        String lang = russian ? "ru" : "en";
-        String query = key(search);
-        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
-                null, SQLiteDatabase.OPEN_READONLY)) {
-            List<String[]> matches = new ArrayList<>();
-            try (Cursor rows = db.rawQuery(
-                    "SELECT id, title_" + lang + ", 'seed' FROM recipe UNION ALL " +
-                    "SELECT id, title_" + lang + ", 'offline' FROM offline_recipe", null)) {
-                while (rows.moveToNext()) {
-                    String title = rows.getString(1);
-                    if (key(title).contains(query)) {
-                        matches.add(new String[] {rows.getString(0), title, rows.getString(2)});
-                    }
-                }
-            }
-            matches.sort(Comparator.comparing(row -> key(row[1])));
-            Map<String, Card> groups = new LinkedHashMap<>();
-            for (int index = offset; index < Math.min(matches.size(), offset + limit); index++) {
-                String[] match = matches.get(index);
-                addRecipe(db, match[0], "offline".equals(match[2]), lang, groups);
-            }
-            return new CatalogPage(new ArrayList<>(groups.values()), matches.size());
-        }
-    }
-
     static List<TagAxis> discoveryAxes(Context context, boolean russian) throws IOException {
         String lang = russian ? "ru" : "en";
+        String other = russian ? "en" : "ru";
         Map<String, TagAxis> axes = new LinkedHashMap<>();
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
                 null, SQLiteDatabase.OPEN_READONLY)) {
@@ -228,41 +199,41 @@ final class RecipeCatalog {
                 return Collections.emptyList();
             }
             try (Cursor rows = db.rawQuery(
-                    "SELECT a.id, a.name_" + lang + ", a.multiple, t.id, t.name_" + lang +
+                    "SELECT a.id, a.name_" + lang + ", a.multiple, t.id, t.name_" + lang + ", t.name_" + other +
                     " FROM tag_axis a JOIN tag t ON t.axis_id=a.id ORDER BY a.position, t.position", null)) {
                 while (rows.moveToNext()) {
                     String axisId = rows.getString(0);
                     TagAxis axis = axes.computeIfAbsent(axisId,
                             id -> new TagAxis(id, rows.getString(1), rows.getInt(2) != 0));
-                    axis.tags.add(new Tag(axisId, rows.getString(3), rows.getString(4), null));
+                    axis.tags.add(new Tag(axisId, rows.getString(3), rows.getString(4), rows.getString(5), null));
                 }
             }
         }
         return new ArrayList<>(axes.values());
     }
 
-    static CatalogPage discover(Context context, Map<String, Set<String>> filters, Integer maxMinutes,
+    static CatalogPage discover(Context context, String title, Map<String, Set<String>> filters, Integer maxMinutes,
                                 int offset, int limit, boolean russian) throws IOException {
         if (offset < 0 || limit < 1) {
             throw new IllegalArgumentException("Invalid catalog page.");
         }
         RecipeDiscovery query = new RecipeDiscovery(filters, maxMinutes);
+        String normalizedTitle = key(title);
         String lang = russian ? "ru" : "en";
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
                 null, SQLiteDatabase.OPEN_READONLY)) {
             boolean taggedCatalog = hasTags(db);
             if (!taggedCatalog && !query.axes.isEmpty()) {
-                return new CatalogPage(Collections.emptyList(), 0);
+                return new CatalogPage(Collections.emptyList(), 0, false, Collections.emptyList(), Collections.emptyList());
             }
-            Map<String, List<Match>> matches = new LinkedHashMap<>();
-            boolean partial = false;
-            try (Cursor rows = db.rawQuery(query.sql, query.arguments)) {
-                while (rows.moveToNext()) {
-                    partial = rows.getInt(3) < query.axes.size();
-                    matches.computeIfAbsent(rows.getString(1), ignored -> new ArrayList<>()).add(
-                            new Match(rows.getString(0), rows.getInt(2) != 0, query.missingAxes(rows.getString(4))));
-                }
-            }
+            Map<String, List<Match>> matches = searchMatches(db, query, normalizedTitle, false);
+            boolean partial = !matches.isEmpty() && !matches.values().iterator().next().get(0).missingAxes().isEmpty();
+            List<String> titleHints = normalizedTitle.isEmpty() || partial ? Collections.emptyList()
+                    : matches.values().stream().limit(4).map(family -> family.get(0))
+                            .map(match -> russian ? match.titleRu() : match.titleEn())
+                            .collect(java.util.stream.Collectors.toList());
+            List<Refinement> refinements = matches.isEmpty() || partial
+                    ? refinements(db, normalizedTitle, filters, maxMinutes) : Collections.emptyList();
 
             // Choose the page after grouping so a family cannot span multiple pages.
             Map<String, Card> groups = new LinkedHashMap<>();
@@ -275,14 +246,82 @@ final class RecipeCatalog {
                     break;
                 }
                 for (Match match : family) {
-                    Recipe recipe = addRecipe(db, match.id, match.imported, lang, groups);
+                    Recipe recipe = addRecipe(db, match.id(), match.imported(), lang, groups);
                     if (taggedCatalog && recipe != null) {
-                        recipe.tags = readTags(db, match.id, lang);
-                        recipe.missingTagAxes = match.missingAxes;
+                        recipe.tags = readTags(db, match.id(), lang);
+                        recipe.missingTagAxes = match.missingAxes();
                     }
                 }
             }
-            return new CatalogPage(new ArrayList<>(groups.values()), matches.size(), partial);
+            return new CatalogPage(new ArrayList<>(groups.values()), matches.size(), partial, titleHints, refinements);
+        }
+    }
+
+    private static Map<String, List<Match>> searchMatches(SQLiteDatabase db, RecipeDiscovery query,
+                                                         String title, boolean exactOnly) {
+        Map<String, List<Match>> matches = new LinkedHashMap<>();
+        int best = exactOnly ? query.axes.size() : -1;
+        try (Cursor rows = db.rawQuery(query.sql, query.arguments)) {
+            while (rows.moveToNext()) {
+                int hits = rows.getInt(3);
+                if (hits < best) {
+                    break;
+                }
+                if (!RecipeDiscovery.matchesTitle(title, rows.getString(5), rows.getString(6))) {
+                    continue;
+                }
+                best = hits;
+                matches.computeIfAbsent(rows.getString(1), ignored -> new ArrayList<>()).add(new Match(
+                        rows.getString(0), rows.getInt(2) != 0, rows.getString(5), rows.getString(6),
+                        rows.getInt(7), query.missingAxes(rows.getString(4))));
+            }
+        }
+        return matches;
+    }
+
+    private static List<Refinement> refinements(SQLiteDatabase db, String title,
+                                                Map<String, Set<String>> filters, Integer maxMinutes) {
+        List<Refinement> options = new ArrayList<>();
+        if (maxMinutes != null) {
+            Map<String, List<Match>> withoutTime = searchMatches(db, new RecipeDiscovery(filters, null), title, true);
+            if (!withoutTime.isEmpty()) {
+                int shortest = withoutTime.values().iterator().next().get(0).minutes();
+                Integer extended = shortest > 0 ? (int) Math.min(Integer.MAX_VALUE, ((long) shortest + 14) / 15 * 15) : null;
+                int total = extended == null ? withoutTime.size() : searchMatches(
+                        db, new RecipeDiscovery(filters, extended), title, true).size();
+                options.add(new Refinement(Change.TIME, null, extended, total));
+            }
+        }
+        for (String axis : filters.keySet()) {
+            Map<String, Set<String>> relaxed = new LinkedHashMap<>(filters);
+            relaxed.remove(axis);
+            int total = searchMatches(db, new RecipeDiscovery(relaxed, maxMinutes), title, true).size();
+            if (total > 0) {
+                options.add(new Refinement(Change.CATEGORY, axis, null, total));
+            }
+        }
+        if (!title.isEmpty()) {
+            int total = searchMatches(db, new RecipeDiscovery(filters, maxMinutes), "", true).size();
+            if (total > 0) {
+                options.add(new Refinement(Change.TITLE, null, null, total));
+            }
+        }
+        return options;
+    }
+
+    static Recipe recipe(Context context, String id, boolean russian) throws IOException {
+        String lang = russian ? "ru" : "en";
+        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
+                null, SQLiteDatabase.OPEN_READONLY)) {
+            Map<String, Card> group = new LinkedHashMap<>();
+            Recipe recipe = addRecipe(db, id, false, lang, group);
+            if (recipe == null) {
+                recipe = addRecipe(db, id, true, lang, group);
+            }
+            if (recipe != null && hasTags(db)) {
+                recipe.tags = readTags(db, id, lang);
+            }
+            return recipe;
         }
     }
 
@@ -299,7 +338,7 @@ final class RecipeCatalog {
                 " JOIN tag_axis a ON a.id=t.axis_id WHERE r.recipe_id=? ORDER BY a.position, t.position",
                 new String[] {id})) {
             while (rows.moveToNext()) {
-                tags.add(new Tag(rows.getString(0), rows.getString(1), rows.getString(2), rows.getString(3)));
+                tags.add(new Tag(rows.getString(0), rows.getString(1), rows.getString(2), null, rows.getString(3)));
             }
         }
         return tags;
@@ -319,7 +358,7 @@ final class RecipeCatalog {
             if (!row.moveToFirst()) {
                 return null;
             }
-            Recipe recipe = new Recipe(row.getString(2), row.getInt(3), row.getInt(4));
+            Recipe recipe = new Recipe(id, row.getString(2), row.getInt(3), row.getInt(4));
             readIngredients(db, id, lang, null, recipe);
             readSteps(db, id, lang, recipe);
             String family = row.getString(1);
@@ -351,7 +390,7 @@ final class RecipeCatalog {
 
     private static Recipe addExternal(Cursor row, Map<String, Card> groups) throws IOException {
         String title = row.getString(2);
-        Recipe recipe = new Recipe(title, row.getInt(5), row.getInt(6));
+        Recipe recipe = new Recipe(row.getString(0), title, row.getInt(5), row.getInt(6));
         recipe.revisionUrl = row.getString(7);
         recipe.licenseUrl = row.getString(8);
         readJsonLines(row.getString(3), recipe.sourceIngredients);

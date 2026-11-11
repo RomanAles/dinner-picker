@@ -17,6 +17,7 @@ class Android:
     def __init__(self, adb, serial):
         self.adb = [str(adb), "-s", serial]
         self.serial = serial
+        self.nodes = []
 
     def run(self, *args, timeout=60):
         result = subprocess.run([*self.adb, *args], text=True, encoding="utf-8", errors="replace",
@@ -32,16 +33,20 @@ class Android:
     def dump(self):
         path = "/data/local/tmp/dinner-picker-ui.xml"
         self.shell("uiautomator", "dump", path, timeout=20)
-        return list(ET.fromstring(self.run("exec-out", "cat", path)).iter("node"))
+        self.nodes = list(ET.fromstring(self.run("exec-out", "cat", path)).iter("node"))
+        return self.nodes
 
-    def matches(self, node, labels):
-        return any(label.casefold() in node.get(attribute, "").casefold()
-                   for label in labels for attribute in ("text", "content-desc"))
+    def matches(self, node, labels, *, exact=False):
+        values = [node.get(attribute, "").casefold() for attribute in ("text", "content-desc")]
+        return any(label.casefold() in values if exact else any(label.casefold() in value for value in values)
+                   for label in labels)
 
-    def find(self, *labels, scroll=False, clickable=False):
+    def find(self, *labels, scroll=False, clickable=False, exact=False, widget=None):
         for attempt in range(8):
             for node in self.dump():
-                if self.matches(node, labels) and (not clickable or node.get("clickable") == "true"):
+                can_tap = node.get("clickable") == "true" or node.get("class") == "android.widget.CheckedTextView"
+                if ((widget is None or node.get("class") == widget) and (not clickable or can_tap)
+                        and self.matches(node, labels, exact=exact)):
                     return node
             if scroll:
                 self.scroll(down=True)
@@ -49,22 +54,32 @@ class Android:
                 time.sleep(0.5)
         raise RuntimeError(f"UI element missing: {labels}")
 
-    def tap(self, *labels, scroll=False):
-        node = self.find(*labels, scroll=scroll, clickable=True)
+    def tap(self, *labels, scroll=False, exact=False, widget=None):
+        node = self.find(*labels, scroll=scroll, clickable=True, exact=exact, widget=widget)
         match = BOUNDS.fullmatch(node.get("bounds", ""))
         if not match:
             raise RuntimeError(f"Element has no screen bounds: {labels}")
         x1, y1, x2, y2 = map(int, match.groups())
         self.shell("input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
+        return node
 
     def scroll(self, *, down):
-        size = self.shell("wm", "size").splitlines()[-1]
-        width, height = map(int, re.search(r"(\d+)x(\d+)", size).groups())
-        top, bottom = int(height * 0.22), int(height * 0.80)
+        for node in self.nodes:
+            if node.get("class") in {"android.widget.ScrollView", "android.widget.ListView"} and node.get("scrollable") == "true":
+                left, top, right, bottom = map(int, BOUNDS.fullmatch(node.get("bounds")).groups())
+                margin = (bottom - top) // 6
+                top, bottom = top + margin, bottom - margin
+                center = (left + right) // 2
+                break
+        else:
+            size = self.shell("wm", "size").splitlines()[-1]
+            width, height = map(int, re.search(r"(\d+)x(\d+)", size).groups())
+            top, bottom, center = int(height * 0.36), int(height * 0.82), width // 2
         y1, y2 = (bottom, top) if down else (top, bottom)
-        self.shell("input", "swipe", str(width // 2), str(y1), str(width // 2), str(y2), "390")
+        self.shell("input", "swipe", str(center), str(y1), str(center), str(y2), "390")
 
     def to_top(self):
+        self.dump()
         for _ in range(4):
             self.scroll(down=False)
 
@@ -94,6 +109,62 @@ def verify_discovery(device):
     device.to_top()
 
 
+def verify_unified_search(device):
+    device.tap("Search recipes and tags", exact=True)
+    device.shell("input", "text", "soup")
+    device.find("Recipe ·", clickable=True)
+    device.tap("Tag · Soups", exact=True)
+    device.tap("Meal", exact=True)
+    device.tap("Dinner", exact=True)
+    device.tap("Done", exact=True)
+    device.tap("Time", exact=True)
+    device.tap("Up to 30 min", exact=True)
+    filtered = device.find("Recipes found")
+    device.find("Up to 30 min ×", exact=True)
+    device.find("Dinner ×", exact=True)
+
+    recipe = device.tap("Easy Wedding Soup", scroll=True)
+    device.find("Back to results")
+    device.find("Method", scroll=True)
+    device.shell("input", "keyevent", "KEYCODE_BACK")
+    if recipe.get("bounds") != device.find("Easy Wedding Soup", clickable=True).get("bounds"):
+        raise RuntimeError("Returning from the recipe moved the search results.")
+    device.find("Up to 30 min ×", exact=True)
+    device.tap("Up to 30 min ×", exact=True)
+    expanded = device.find("Recipes found")
+    if int(expanded.get("text").split("·")[-1]) <= int(filtered.get("text").split("·")[-1]):
+        raise RuntimeError("Removing the time limit did not expand the results.")
+
+    device.tap("Русский", exact=True)
+    device.find("Супы ×", exact=True)
+    device.find("Ужин ×", exact=True)
+    device.tap("English", exact=True)
+
+    device.tap("Time", exact=True)
+    device.tap("Up to 15 min", exact=True)
+    device.tap("Search recipes and tags", exact=True)
+    device.shell("input", "text", "Easy%sWedding%sSoup")
+    device.shell("input", "keyevent", "KEYCODE_BACK")
+    device.find("No exact matches", exact=True)
+    suggestion = device.tap("Increase time to 30 min")
+    total = int(suggestion.get("text").split("·")[-1])
+    device.find(f"Recipes found · {total}", exact=True)
+    device.find("Up to 30 min ×", exact=True)
+
+    device.tap("Ideas", exact=True)
+    device.tap("Easy breakfast", scroll=True, exact=True)
+    device.tap("Dish type", exact=True)
+    device.tap("Soups", exact=True)
+    device.tap("Done", exact=True)
+    device.find("No exact matches", exact=True)
+    device.find("Similar recipes", scroll=True)
+    device.find("Did not match", scroll=True)
+    device.to_top()
+    suggestion = device.tap("Remove “Soups”", scroll=True)
+    total = int(suggestion.get("text").split("·")[-1])
+    device.find(f"Recipes found · {total}", exact=True)
+
+
 def verify(args):
     device = Android(args.adb, args.serial)
     emulator = args.serial.startswith("emulator-")
@@ -120,8 +191,16 @@ def verify(args):
 
         if any(node.get("text") == "English" for node in device.dump()):
             device.tap("English")
-        discovery = any(node.get("text") == "Ideas for today" for node in device.dump())
-        if discovery:
+        nodes = device.dump()
+        unified = any(node.get("content-desc") == "Search recipes and tags" for node in nodes)
+        discovery = any(node.get("text") == "Ideas for today" for node in nodes)
+        if unified:
+            verify_unified_search(device)
+            checks.extend(("live_search_tag_and_title_suggestions", "filter_chips_and_recipe_back_position",
+                           "language_switch_retains_tags", "time_and_category_refinements_with_exact_counts"))
+            device.tap("Ideas", exact=True)
+            device.tap("Search by ingredients", scroll=True, exact=True)
+        elif discovery:
             verify_discovery(device)
             checks.append("discovery_presets_filters_partial_results_and_language_offline")
             device.tap("Search by ingredients", scroll=True)
@@ -132,6 +211,8 @@ def verify(args):
         device.find("eggs · 4 pc(s)", scroll=True)
         checks.append("pantry_time_group_and_portions_en")
 
+        if unified:
+            device.tap("Back to results")
         device.to_top()
         device.tap("Русский")
         device.find("Что на ужин?")
@@ -142,19 +223,31 @@ def verify(args):
         device.find("яйца · 4 шт.", scroll=True)
         checks.append("language_switch_and_pantry_ru")
 
-        device.to_top()
-        device.tap("Поиск по названию" if discovery else "Весь каталог", scroll=True)
-        device.tap("Все рецепты")
-        device.find(f"Каталог · найдено: {args.recipes}", scroll=True)
+        if unified:
+            device.tap("К результатам")
+            device.tap("Идеи", exact=True)
+            device.tap("Весь каталог", scroll=True, exact=True)
+            heading = "Найдено блюд" if args.cards is None else f"Найдено блюд · {args.cards}"
+            device.find(heading, exact=args.cards is not None)
+        else:
+            device.to_top()
+            device.tap("Поиск по названию" if discovery else "Весь каталог", scroll=True)
+            device.tap("Все рецепты")
+            device.find(f"Каталог · найдено: {args.recipes}", scroll=True)
         checks.append("all_bundled_recipes_available_offline")
 
         device.to_top()
         device.tap("English")
-        device.tap("Search by name" if discovery else "Browse catalog", scroll=True)
-        device.find("Recipe name or part of it")
-        device.shell("input", "text", args.query)
-        device.tap("Search")
-        device.tap(args.recipe_title, scroll=True)
+        if unified:
+            device.tap("Search recipes and tags", exact=True)
+            device.shell("input", "text", args.query)
+            device.tap(f"Recipe · {args.recipe_title}")
+        else:
+            device.tap("Search by name" if discovery else "Browse catalog", scroll=True)
+            device.find("Recipe name or part of it")
+            device.shell("input", "text", args.query)
+            device.tap("Search")
+        device.tap(args.recipe_title, scroll=True, widget="android.widget.Button")
         device.find("Source and authors · Wikibooks", scroll=True)
         checks.append("title_search_and_attribution_offline")
     finally:
@@ -179,6 +272,7 @@ def main():
     parser.add_argument("--serial", default="emulator-5554")
     parser.add_argument("--apk", type=Path, required=True)
     parser.add_argument("--recipes", type=int, required=True)
+    parser.add_argument("--cards", type=int, help="Expected card count in the unified catalog")
     parser.add_argument("--query", required=True, help="ASCII search term for a bundled Wikibooks recipe")
     parser.add_argument("--recipe-title", required=True)
     parser.add_argument("--report", type=Path)
