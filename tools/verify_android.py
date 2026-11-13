@@ -109,7 +109,7 @@ def verify_discovery(device):
     device.to_top()
 
 
-def verify_unified_search(device, *, english_only=False):
+def verify_unified_search(device, *, english_only=False, dinner_board=False):
     device.tap("Search recipes and tags", exact=True)
     device.shell("input", "text", "soup")
     device.find("Recipe ·", clickable=True)
@@ -152,8 +152,8 @@ def verify_unified_search(device, *, english_only=False):
     device.find(f"Recipes found · {total}", exact=True)
     device.find("Up to 30 min ×", exact=True)
 
-    device.tap("Ideas", exact=True)
-    device.tap("Easy breakfast", scroll=True, exact=True)
+    device.tap("Board" if dinner_board else "Ideas", exact=True)
+    device.tap("Breakfast" if dinner_board else "Easy breakfast", scroll=True, exact=True)
     device.tap("Dish type", exact=True)
     device.tap("Soups", exact=True)
     device.tap("Done", exact=True)
@@ -200,24 +200,35 @@ def verify(args):
         if any(node.get("text") == "English" for node in device.dump()):
             device.tap("English")
         nodes = device.dump()
-        unified = any(node.get("content-desc") == "Search recipes and tags" for node in nodes)
+        dinner_board = any(node.get("text") == "Browse collections" for node in nodes)
+        unified = dinner_board or any(node.get("content-desc") == "Search recipes and tags" for node in nodes)
+        home_label = "Board" if dinner_board else "Ideas"
+        pantry_label = "Pantry" if dinner_board else "Search by ingredients"
+        search_label = "Search recipes" if dinner_board else "Browse all recipes"
         english_only = any(node.get("content-desc", "").startswith("Measurement system · ") for node in nodes)
         if english_only and any(node.get("content-desc") == "Measurement system · Imperial" for node in nodes):
             switch_measurements(device, "Imperial", "Metric")
         discovery = any(node.get("text") == "Ideas for today" for node in nodes)
         if unified:
-            verify_unified_search(device, english_only=english_only)
+            if dinner_board:
+                device.tap("Cozy dinners", exact=True)
+                device.find("Recipes found")
+                device.find("Cozy ×", exact=True)
+                device.find("Dinner ×", exact=True)
+                device.tap(home_label, exact=True)
+                device.tap(search_label, exact=True)
+                checks.append("dinner_board_collection_opens_with_its_filters")
+            verify_unified_search(device, english_only=english_only, dinner_board=dinner_board)
             checks.extend(("live_search_tag_and_title_suggestions", "filter_chips_and_recipe_back_position",
                            "time_and_category_refinements_with_exact_counts"))
             if english_only:
-                device.find("What’s for dinner?", exact=True)
                 if any(n.get("text") in {"Русский", "English"} for n in device.dump()):
                     raise RuntimeError("A language switch remains in the English interface.")
                 checks.append("english_interface_and_catalog")
             else:
                 checks.append("language_switch_retains_tags")
-            device.tap("Ideas", exact=True)
-            device.tap("Search by ingredients", scroll=True, exact=True)
+            device.tap(home_label, exact=True)
+            device.tap(pantry_label, scroll=True, exact=True)
         elif discovery:
             verify_discovery(device)
             checks.append("discovery_presets_filters_partial_results_and_language_offline")
@@ -230,6 +241,12 @@ def verify(args):
         checks.append("pantry_time_group_and_portions_en")
 
         if english_only:
+            if dinner_board:
+                device.tap("Photo credit", scroll=True)
+                device.find("Source · Wikimedia Commons")
+                device.find("CC BY")
+                device.tap("Close", exact=True)
+                checks.append("recipe_photo_and_license_are_available_offline")
             device.find("cheese · 60 g", scroll=True)
             device.find("vegetable oil · 10 mL", scroll=True)
             switch_measurements(device, "Metric", "Imperial")
@@ -239,8 +256,10 @@ def verify(args):
             device.tap("Back to results")
             device.find("Measurement system · Imperial", exact=True)
             checks.append("measurement_switch_updates_open_recipe_and_preserves_scaled_servings")
-            device.tap("Ideas", exact=True)
-            device.tap("Browse all recipes", scroll=True, exact=True)
+            device.tap(home_label, exact=True)
+            device.tap(search_label, scroll=True, exact=True)
+            if dinner_board:
+                device.shell("input", "keyevent", "KEYCODE_BACK")
             heading = "Recipes found" if args.cards is None else f"Recipes found · {args.cards}"
             device.find(heading, exact=args.cards is not None)
         else:

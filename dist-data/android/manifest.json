@@ -1,13 +1,22 @@
 {
   "enrichment_sha256": "5bb171605e6b6ebeac1ad0fe324765dc6c7f7a19a6259d5437a31dcfec2605aa",
-  "sqlite_sha256": "43fe2f5e444ed8f66e84e27e6823564daf9aeeecd1378a3406ba38da249fbfc9",
+  "sqlite_sha256": "d103a3e047f87ba98981c64b0b17564f826bad119ef29d332d9b7ffffec3bad8",
   "starter_recipes": 11,
-  "wikibooks_recipes": 479,
-  "wikibooks_with_strict_search": 39,
+  "wikibooks_recipes": 478,
+  "wikibooks_with_strict_search": 44,
   "unit_translation_reviews": 77,
   "translation_rechecks": 65,
   "reviewed_repairs": 1,
-  "total_recipes": 490,
+  "editorial_repairs": 16,
+  "editorial_exclusions": [
+    {
+      "id": "wikibooks:en:456543",
+      "reason": "The fermentation instructions leave raw fish warm for at least 48 hours with no measured salt concentration or controlled temperature.",
+      "source": "https://en.wikibooks.org/w/index.php?oldid=4519043",
+      "reference": "https://www.fda.gov/files/food/published/SeafoodHazardsGuide-CompleteDocument-June2022.pdf"
+    }
+  ],
+  "total_recipes": 489,
   "tags": {
     "version": 1,
     "rule_version": 1,
@@ -16,13 +25,13 @@
     "tagged_recipes": 355,
     "manually_tagged_recipes": 34,
     "automatically_tagged_recipes": 321,
-    "untagged_recipes": 135,
-    "assignments": 1069,
+    "untagged_recipes": 134,
+    "assignments": 1070,
     "coverage": {
       "dish_type": 184,
       "occasion": 64,
       "mood": 92,
-      "difficulty": 104,
+      "difficulty": 105,
       "novelty": 33,
       "satiety": 28,
       "meal": 74,
@@ -32,7 +41,7 @@
       "dish_type": 150,
       "occasion": 34,
       "mood": 66,
-      "difficulty": 70,
+      "difficulty": 71,
       "novelty": 0,
       "satiety": 3,
       "meal": 48,

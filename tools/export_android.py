@@ -16,6 +16,7 @@ from tools.enrich_catalog import DESTINATION, validate_translation
 from tools.tag_catalog import ANDROID_DATA, apply_tags
 
 REVIEWED_REPAIRS = ROOT / "catalog" / "reviewed_repairs.json"
+EDITORIAL_REPAIRS = ROOT / "catalog" / "editorial_repairs.json"
 SCHEMA = """
 CREATE TABLE offline_family (
     id TEXT PRIMARY KEY, title_ru TEXT NOT NULL, title_en TEXT NOT NULL,
@@ -36,6 +37,10 @@ CREATE TABLE offline_ingredient (
 CREATE TABLE offline_alias (
     language TEXT NOT NULL, name TEXT NOT NULL, ingredient_key TEXT NOT NULL,
     PRIMARY KEY (language, name)
+);
+CREATE TABLE offline_note (
+    recipe_id TEXT PRIMARY KEY REFERENCES offline_recipe(id),
+    text_en TEXT NOT NULL
 );
 CREATE INDEX offline_recipe_minutes ON offline_recipe(strict_ready, minutes);
 """
@@ -144,6 +149,72 @@ def import_reviewed_repairs(target, source):
     return included
 
 
+def apply_pantry_ingredients(target, recipe_id, ingredient_names, rules):
+    keys = set()
+    for equivalents in ingredient_names:
+        ingredients = [normalize_ingredient(name, "en", rules) for name in equivalents]
+        mapped = {item[0] for item in ingredients if item[0]}
+        if not ingredients or len(mapped) > 1 or any(item[-1] == "needs_review" for item in ingredients):
+            raise ValueError(f"Invalid reviewed Pantry ingredient for {recipe_id}: {equivalents}")
+        key = next(iter(mapped)) if mapped else "custom:" + sha256(ingredients[0][1].encode()).hexdigest()[:20]
+        if key in keys:
+            raise ValueError(f"Duplicate reviewed Pantry ingredient for {recipe_id}: {equivalents}")
+        keys.add(key)
+        for _, name, *_ in ingredients:
+            existing = target.execute("""
+                SELECT ingredient_key FROM offline_alias WHERE language='en' AND name=?
+            """, (name,)).fetchone()
+            if existing is not None and existing[0] != key:
+                raise ValueError(f"Conflicting reviewed Pantry alias for {recipe_id}: {name}")
+            target.execute("INSERT OR IGNORE INTO offline_alias VALUES ('en', ?, ?)", (name, key))
+    if not keys:
+        raise ValueError(f"No reviewed Pantry ingredients for {recipe_id}.")
+    target.execute("DELETE FROM offline_ingredient WHERE recipe_id=?", (recipe_id,))
+    target.executemany("INSERT INTO offline_ingredient VALUES (?, ?)",
+                       ((recipe_id, key) for key in sorted(keys)))
+    target.execute("UPDATE offline_recipe SET strict_ready=1 WHERE id=?", (recipe_id,))
+
+
+def apply_editorial_repairs(target, rules):
+    included = 0
+    excluded = []
+    for recipe_id, repair in json.loads(EDITORIAL_REPAIRS.read_bytes()).items():
+        row = target.execute("""
+            SELECT revision_url, title_en, ingredients_en, steps_en, strict_ready, minutes
+            FROM offline_recipe WHERE id=?
+        """, (recipe_id,)).fetchone()
+        if row is None:
+            continue
+        revision, title, ingredients_json, steps_json, strict_ready, minutes = row
+        if revision != repair["revision_url"]:
+            raise ValueError(f"Review the changed source revision for {recipe_id}.")
+        if reason := repair.get("exclude_reason"):
+            target.execute("DELETE FROM offline_ingredient WHERE recipe_id=?", (recipe_id,))
+            target.execute("DELETE FROM offline_recipe WHERE id=?", (recipe_id,))
+            excluded.append({"id": recipe_id, "reason": reason, "source": revision,
+                             "reference": repair["reference_url"]})
+            continue
+        ingredients = repair.get("ingredients_en", json.loads(ingredients_json)) + repair.get("add_ingredients_en", [])
+        steps = repair.get("steps_en", json.loads(steps_json))
+        ingredients_changed = ingredients != json.loads(ingredients_json)
+        target.execute("""
+            UPDATE offline_recipe SET title_en=?, ingredients_en=?, steps_en=?, strict_ready=? WHERE id=?
+        """, (repair.get("title_en", title), json.dumps(ingredients, ensure_ascii=False),
+              json.dumps(steps, ensure_ascii=False), strict_ready and not ingredients_changed, recipe_id))
+        if strict_ready and ingredients_changed:
+            target.execute("DELETE FROM offline_ingredient WHERE recipe_id=?", (recipe_id,))
+        if "pantry_ingredients_en" in repair:
+            if not minutes or minutes < 1:
+                raise ValueError(f"Review the missing cooking time for Pantry recipe {recipe_id}.")
+            apply_pantry_ingredients(target, recipe_id, repair["pantry_ingredients_en"], rules)
+        if notes := repair.get("notes_en"):
+            if reference := repair.get("reference_url"):
+                notes += "\n" + reference
+            target.execute("INSERT INTO offline_note VALUES (?, ?)", (recipe_id, notes))
+        included += 1
+    return included, excluded
+
+
 def export_android(enriched, output):
     enriched, output = enriched.resolve(), output.resolve()
     if output in {enriched, OUTPUT.resolve(), DATABASE.parent.resolve()}:
@@ -166,6 +237,7 @@ def export_android(enriched, output):
             with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as source, target:
                 unit_reviews, translation_reviews = import_release(target, source, rules)
                 repaired = import_reviewed_repairs(target, source)
+                editorial_repairs, editorial_exclusions = apply_editorial_repairs(target, rules)
             tags = apply_tags(target)
             if (target.execute("PRAGMA integrity_check").fetchone() != ("ok",)
                     or target.execute("PRAGMA foreign_key_check").fetchone() is not None):
@@ -183,6 +255,8 @@ def export_android(enriched, output):
             "unit_translation_reviews": unit_reviews,
             "translation_rechecks": translation_reviews,
             "reviewed_repairs": repaired,
+            "editorial_repairs": editorial_repairs,
+            "editorial_exclusions": editorial_exclusions,
             "total_recipes": seed_count + imported,
             "tags": tags,
         }

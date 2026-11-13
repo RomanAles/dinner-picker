@@ -6,6 +6,7 @@ catalog/pilot/
 /dist-data/android/*
 !/dist-data/android/recipes.sqlite
 !/dist-data/android/manifest.json
+!/dist-data/android/recipe-photos.zip
 android/.gradle/
 android/local.properties
 android/**/build/

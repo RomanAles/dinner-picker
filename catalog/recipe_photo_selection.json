@@ -1,0 +1,2452 @@
+{
+  "beans": [
+    "File:Baked beans in tomato sauce.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "buckwheat": [
+    "File:Гречневая каша.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "omelet-cheese": [
+    "File:Fried cheese omelet.jpg",
+    "dish",
+    "curated"
+  ],
+  "omelet-mushroom": [
+    "File:Blond unbrowned omelet with mushrooms and herbs.jpg",
+    "dish",
+    "curated"
+  ],
+  "omelet-tomato": [
+    "File:Omelette a la Mexicana.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "pasta-cheese": [
+    "File:Cheese-Pasta.jpg",
+    "dish",
+    "curated"
+  ],
+  "pasta-garlic": [
+    "File:Aglio e olio.jpg",
+    "dish",
+    "curated"
+  ],
+  "pasta-tomato": [
+    "File:Spaghetti al Pomodoro.JPG",
+    "illustrative",
+    "curated"
+  ],
+  "salad": [
+    "File:Shirazi salad2.JPG",
+    "illustrative",
+    "curated"
+  ],
+  "toast-cheese": [
+    "File:Cheese-on-toast.JPG",
+    "dish",
+    "curated"
+  ],
+  "toast-tomato": [
+    "File:2014 Bruschetta The Larder Chiang Mai.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:101185": [
+    "File:Tuna Casserole2.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:101529": [
+    "File:New Orleans Muffuletta - The best sandwich I ever had.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:101881": [
+    "File:Candied Orange Peel, Sliced (4175935076).jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:101882": [
+    "File:Brandy butter.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:102205": [
+    "File:Ratatouille home cooked.jpg",
+    "illustrative",
+    "category:vegetable"
+  ],
+  "wikibooks:en:102572": [
+    "File:Knoephla Soup.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:103278": [
+    "File:Recette pate brisee etape 6.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:103755": [
+    "File:Recette pate brisee etape 6.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:104173": [
+    "File:Apple crumble - home cooking, New Orleans.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:104177": [
+    "File:Oatmeal Raisin Cookies.jpg",
+    "illustrative",
+    "category:Cookie"
+  ],
+  "wikibooks:en:104342": [
+    "File:Fruitcake.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:104369": [
+    "File:Lamb-stew.jpg",
+    "illustrative",
+    "category:Stew"
+  ],
+  "wikibooks:en:104593": [
+    "File:Lemonade - 27682817724.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:105063": [
+    "File:Banana on pancake.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:105346": [
+    "File:Banana bread slices.jpg",
+    "illustrative",
+    "category:Banana bread"
+  ],
+  "wikibooks:en:106077": [
+    "File:Cherry juice 259A7261.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:106528": [
+    "File:Sunday-Pork-Roast-2008.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:106602": [
+    "File:Borscht served.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:106772": [
+    "File:Pumpkin dump cake with Cool Whip 25.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:107007": [
+    "File:Blanc-manger on glass platter, full view.jpg",
+    "illustrative",
+    "category:Pudding"
+  ],
+  "wikibooks:en:107155": [
+    "File:Mini lemon sponge cake from Costa Coffee (19932469044).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:108422": [
+    "File:Perfil de Rosto Anônimo à Luz de uma Janela - 1-22822-0143-0293, Acervo do Museu Paulista da USP.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:108424": [
+    "File:Leek Soup.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:108460": [
+    "File:Franse tarte tatin.jpg",
+    "dish",
+    "article_title"
+  ],
+  "wikibooks:en:108966": [
+    "File:Asparagus soup (spargelsuppe).jpg",
+    "illustrative",
+    "category:Soup"
+  ],
+  "wikibooks:en:109343": [
+    "File:Bonefish grill bacon wrapped scallops.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:109476": [
+    "File:Stack of Cracklin' Oat Bran cereal.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:109870": [
+    "File:Eggs Benedict2.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:110180": [
+    "File:Charsiu.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:110254": [
+    "File:Atole.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:110290": [
+    "File:Empanada - Stu Spivack.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:110406": [
+    "File:Polvoron.JPG",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:110766": [
+    "File:Making Royal icing.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:110866": [
+    "File:Pecan Pie on blue plate.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:110882": [
+    "File:Practical Receipts - Raspberry Vinegar.png",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:111169": [
+    "File:Creme Brulee Cheesecake.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:11173": [
+    "File:Blanc-manger on glass platter, full view.jpg",
+    "illustrative",
+    "category:Pudding"
+  ],
+  "wikibooks:en:112262": [
+    "File:Chocolatebrownie.JPG",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:112263": [
+    "File:Fruktsallad (Fruit salad).jpg",
+    "illustrative",
+    "category:Fruit salad"
+  ],
+  "wikibooks:en:112811": [
+    "File:Pancakes (Vegan) (Cropped).jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:112836": [
+    "File:Foodiesfeed.com pouring-honey-on-pancakes-with-walnuts.jpg",
+    "illustrative",
+    "category:Pancake"
+  ],
+  "wikibooks:en:112839": [
+    "File:190908 023 Chicago Botanic Gdn - Visitor Center, Garden View Café Brunch, lemon blueberry pancakes with blueberry compote, pork sausage links, delicious food, great service (48861642517).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:112841": [
+    "File:Foodiesfeed.com pouring-honey-on-pancakes-with-walnuts.jpg",
+    "illustrative",
+    "category:Pancake"
+  ],
+  "wikibooks:en:112909": [
+    "File:Tomato soup, plant-based (44040252791).jpg",
+    "illustrative",
+    "category:Tomato soup"
+  ],
+  "wikibooks:en:113001": [
+    "File:Apple pie 14.jpg",
+    "illustrative",
+    "category:pie"
+  ],
+  "wikibooks:en:113022": [
+    "File:Đường cạnh chùa Ngọc Hồi, Thanh Trì, Hà Nội 002.JPG",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:113687": [
+    "File:Raspberry tart.jpg",
+    "illustrative",
+    "category:Tart"
+  ],
+  "wikibooks:en:11375": [
+    "File:Grits1.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:113953": [
+    "File:Stargazy pie prebake.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:114228": [
+    "File:2RadishPie250px.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:115287": [
+    "File:Fish, chips and mushy peas.jpg",
+    "illustrative",
+    "category:fish"
+  ],
+  "wikibooks:en:115498": [
+    "File:Mammy’s Sweet Potato Pudding.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:11572": [
+    "File:Oatmeal raisin cookies 1.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:11581": [
+    "File:GreekSalad.jpg",
+    "illustrative",
+    "category:Salad"
+  ],
+  "wikibooks:en:117574": [
+    "File:Sofrito.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:117608": [
+    "File:Red Quinoa.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:117889": [
+    "File:The-Switchel close-up(2).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:119511": [
+    "File:Empanada flor de Calabaza.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:11958": [
+    "File:Fried egg, sunny side up.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:121562": [
+    "File:Rosahotcocoa.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:122799": [
+    "File:Whole hog barbecue, Big Apple Barbecue Block Party 2013.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:124512": [
+    "File:Pea protein milk with yellow split peas.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:125872": [
+    "File:Charoset&ingredients.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:12621": [
+    "File:Scone varieties.jpg",
+    "illustrative",
+    "category:Scone"
+  ],
+  "wikibooks:en:126418": [
+    "File:Fish pies and fish rolls.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:126575": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:127435": [
+    "File:Flan de queso, gastronomía del Maestrazgo.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:127663": [
+    "File:Pizza Hut Grilled Cheese Stuffed Crust Pizza 3 (29200042184).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:127668": [
+    "File:Soy powder.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:127669": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:127691": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:128617": [
+    "File:Daigaku-imo 001.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:128799": [
+    "File:SaltPepper.jpg",
+    "illustrative",
+    "category:seasoning"
+  ],
+  "wikibooks:en:129340": [
+    "File:Two kinds of tarhana.JPG",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:129719": [
+    "File:Turkish muhallebi.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:130161": [
+    "File:NCI Visuals Food Muffins.jpg",
+    "illustrative",
+    "category:Muffin"
+  ],
+  "wikibooks:en:130250": [
+    "File:Sopaipillas pasadas, receta chilena.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:132002": [
+    "File:Ratatouille home cooked.jpg",
+    "illustrative",
+    "category:vegetable"
+  ],
+  "wikibooks:en:132030": [
+    "File:Chiles en nogada La Ópera CDMX 01.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:132076": [
+    "File:2026-06-23 01 49 46 Brown sugar brownies in Westampton Township, Burlington County, New Jersey.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:132668": [
+    "File:Bara Brith (3320696816).jpg",
+    "illustrative",
+    "category:Fruitcake"
+  ],
+  "wikibooks:en:132790": [
+    "File:FoodOmelete.jpg",
+    "illustrative",
+    "category:eggs"
+  ],
+  "wikibooks:en:133096": [
+    "File:GreekSalad.jpg",
+    "illustrative",
+    "category:Salad"
+  ],
+  "wikibooks:en:133600": [
+    "File:Meshi 001.jpg",
+    "illustrative",
+    "category:rice"
+  ],
+  "wikibooks:en:134525": [
+    "File:SOOC 483 - French Martini.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:13512": [
+    "File:Ladling Jam into Jars.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:136073": [
+    "File:Mexican rice and beans.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:136686": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:137013": [
+    "File:Meshi 001.jpg",
+    "illustrative",
+    "category:rice"
+  ],
+  "wikibooks:en:138396": [
+    "File:Russian Tea Room.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:13885": [
+    "File:Kiwi Smoothie.jpg",
+    "illustrative",
+    "category:Smoothie"
+  ],
+  "wikibooks:en:13951": [
+    "File:Baked beans in tomato sauce.jpg",
+    "illustrative",
+    "category:Baked beans"
+  ],
+  "wikibooks:en:13953": [
+    "File:Potato Bhaaji (Spicy Indian potatoes).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:139837": [
+    "File:Scrambed eggs.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:140331": [
+    "File:Stuffed portabella mushrooms, June 2009.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:140336": [
+    "File:Apple Cake.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:14077": [
+    "File:Onigiri by yomi955.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:14095": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:143224": [
+    "File:Oatmeal Raisin Cookies.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:144311": [
+    "File:Chipolata.jpg",
+    "illustrative",
+    "recipe_source"
+  ],
+  "wikibooks:en:148660": [
+    "File:The Lodger A Story of the London Fog Still2.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:149410": [
+    "File:Meshi 001.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:15126": [
+    "File:GreekSalad.jpg",
+    "illustrative",
+    "category:Salad"
+  ],
+  "wikibooks:en:151270": [
+    "File:Cannoli siciliani.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:15221": [
+    "File:Shepherd's pie (22470901009).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:152959": [
+    "File:Dark rye bread.JPG",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:154375": [
+    "File:Made Yellow Pear Chutney (8454821331).png",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:155612": [
+    "File:Asparagus soup (spargelsuppe).jpg",
+    "illustrative",
+    "category:Soup"
+  ],
+  "wikibooks:en:155613": [
+    "File:Asparagus soup (spargelsuppe).jpg",
+    "illustrative",
+    "category:Soup"
+  ],
+  "wikibooks:en:15878": [
+    "File:Wall painting of rosettes in net pattern from Akrotiri (room 9, xeste 3) - Thera MPT - 01.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:15879": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:15968": [
+    "File:Soy milk (2).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:161252": [
+    "File:Moroccan salad-02.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:162377": [
+    "File:Ratatouille home cooked.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:162943": [
+    "File:Vinegar pickled eggs.jpg",
+    "illustrative",
+    "related_dish"
+  ],
+  "wikibooks:en:164154": [
+    "File:Irish soda bread (47 of 68).jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:164314": [
+    "File:Irish Breakfast with boxty.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:164718": [
+    "File:FoodOmelete.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:165554": [
+    "File:Raspberry tart.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:166037": [
+    "File:Ribeye steak, chips, béarnaise sauce.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:166114": [
+    "File:GreekSalad.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:16682": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:168570": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:168576": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:168625": [
+    "File:HK style pan-fried noodles 2.JPG",
+    "illustrative",
+    "category:noodles"
+  ],
+  "wikibooks:en:169060": [
+    "File:Creme anglaise et pain d'epices DSC00137.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:169262": [
+    "File:Queen of Puddings.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:17014": [
+    "File:Steamed Idlis and Tomato-Onion Chutney.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:175472": [
+    "File:Bangers and mash 1.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:176395": [
+    "File:Latte and dark coffee.jpg",
+    "illustrative",
+    "category:Coffee"
+  ],
+  "wikibooks:en:178220": [
+    "File:Sugar Syrup.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:178389": [
+    "File:Valeries chocolate chip cookies.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:17844": [
+    "File:Oatmealraisins2.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:178946": [
+    "File:Vanillekipferl VK11.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:179390": [
+    "File:Chocolate fudge cake.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:179413": [
+    "File:Baking oatmeal chocolate chip cookies 81.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:179426": [
+    "File:Sticky toffee pudding, rum butterscotch sauce and vanilla ice cream (v) - Post House Cafe, Brighton 2024-01-28.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:181025": [
+    "File:General Tso's Chicken, The Great Wall Bar & Restaurant, Tilbury, Ontario, 2026-09-07 03.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:181464": [
+    "File:TresLechesCake.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:18333": [
+    "File:MeatloafWithSauce.jpg",
+    "illustrative",
+    "category:Meatloaf"
+  ],
+  "wikibooks:en:18447": [
+    "File:Skillet cornbread (cropped).jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:185345": [
+    "File:Oatmeal Raisin Cookies.jpg",
+    "illustrative",
+    "category:Cookie"
+  ],
+  "wikibooks:en:185546": [
+    "File:Vintage Rifles used by Thakur kesari singh barhath (charan) at Barhath Memorial Museum.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:185742": [
+    "File:After The St. Patrick's Parade Late Lunch @ Lemon, Dawson Street, Dublin, Rep. Of Ireland A Fine Tradition! (6992614913).jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:189368": [
+    "File:Foodiesfeed.com pouring-honey-on-pancakes-with-walnuts.jpg",
+    "illustrative",
+    "category:Pancake"
+  ],
+  "wikibooks:en:190711": [
+    "File:Egyptian food Koshary.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:192342": [
+    "File:Peanutmilk-blended 2.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:194377": [
+    "File:Korb mit Brötchen.JPG",
+    "illustrative",
+    "category:bread"
+  ],
+  "wikibooks:en:19759": [
+    "File:Raspberry white chocolate mousse cake with marzipan plaque at Laurent Patisserie.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:198207": [
+    "File:Pavlova cake - Down under dessert.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:198601": [
+    "File:SaltedFishFriedRice.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:198696": [
+    "File:HK style pan-fried noodles 2.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:199311": [
+    "File:Spare ribs with Chinese barbecue sauce cropped.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:199315": [
+    "File:RedDot Burger.jpg",
+    "illustrative",
+    "category:Hamburger"
+  ],
+  "wikibooks:en:199317": [
+    "File:SaltPepper.jpg",
+    "illustrative",
+    "category:seasoning"
+  ],
+  "wikibooks:en:199532": [
+    "File:Fruktsallad (Fruit salad).jpg",
+    "illustrative",
+    "category:Fruit salad"
+  ],
+  "wikibooks:en:199647": [
+    "File:Rib eye steak from Harris Ranch - August 2023 - Sarah Stierch.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:199773": [
+    "File:SaltPepper.jpg",
+    "illustrative",
+    "category:seasoning"
+  ],
+  "wikibooks:en:199857": [
+    "File:BakedPotatoWithButter.jpg",
+    "illustrative",
+    "category:Baked potato"
+  ],
+  "wikibooks:en:199870": [
+    "File:Grilled Banana (8712620084).jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:200032": [
+    "File:Spare ribs with Chinese barbecue sauce cropped.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:200093": [
+    "File:Fruktsallad (Fruit salad).jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:200157": [
+    "File:Tiramisu - Raffaele Diomede.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:200164": [
+    "File:Max's Roasted Chicken - Evan Swigart.jpg",
+    "illustrative",
+    "category:Roast chicken"
+  ],
+  "wikibooks:en:20043": [
+    "File:Pauline's cheese on toast.png",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:200522": [
+    "File:Chocolate coffee mousse.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:200613": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:200789": [
+    "File:Max's Roasted Chicken - Evan Swigart.jpg",
+    "illustrative",
+    "category:Roast chicken"
+  ],
+  "wikibooks:en:200790": [
+    "File:Pulled pork while pulling.JPG",
+    "illustrative",
+    "category:Pulled pork"
+  ],
+  "wikibooks:en:201341": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:202116": [
+    "File:Meshi 001.jpg",
+    "illustrative",
+    "category:rice"
+  ],
+  "wikibooks:en:202135": [
+    "File:Pierre 2 Mini Cheeseburgers (15412685641).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:202176": [
+    "File:Blanc-manger on glass platter, full view.jpg",
+    "illustrative",
+    "category:Pudding"
+  ],
+  "wikibooks:en:202181": [
+    "File:Potato-Chips.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:202325": [
+    "File:Baked Brie.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:202393": [
+    "File:Taj Mahal - Lamb Curry Madras.jpg",
+    "illustrative",
+    "category:Curry"
+  ],
+  "wikibooks:en:202494": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:20252": [
+    "File:Cafe-frape-glas-holztisch-unscharf.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:203126": [
+    "File:Koh Mak, Thailand, Fried rice with seafood, Thai fried rice.jpg",
+    "illustrative",
+    "category:Fried rice"
+  ],
+  "wikibooks:en:203132": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:203153": [
+    "File:Duck Breast.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:203841": [
+    "File:Max's Roasted Chicken - Evan Swigart.jpg",
+    "illustrative",
+    "category:Roast chicken"
+  ],
+  "wikibooks:en:203933": [
+    "File:Duck a l'orange.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:204236": [
+    "File:Chicken and beef with garlic butter sauce bowl of Matsuya.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:204373": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:204499": [
+    "File:Spare ribs with Chinese barbecue sauce cropped.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:204561": [
+    "File:Stir-fried beef, Fire Town, Montparnasse, Paris 002.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:204673": [
+    "File:Korb mit Brötchen.JPG",
+    "illustrative",
+    "category:bread"
+  ],
+  "wikibooks:en:204886": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:204962": [
+    "File:Makaronilaatikko.jpg",
+    "illustrative",
+    "category:Casserole"
+  ],
+  "wikibooks:en:205045": [
+    "File:Ratatouille home cooked.jpg",
+    "illustrative",
+    "category:vegetable"
+  ],
+  "wikibooks:en:205139": [
+    "File:Max's Roasted Chicken - Evan Swigart.jpg",
+    "illustrative",
+    "category:Roast chicken"
+  ],
+  "wikibooks:en:205161": [
+    "File:Duck Breast.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:205933": [
+    "File:Meshi 001.jpg",
+    "illustrative",
+    "category:rice"
+  ],
+  "wikibooks:en:206955": [
+    "File:Bacon, lettuce, tomato, and avocado.jpg",
+    "illustrative",
+    "category:Sandwich"
+  ],
+  "wikibooks:en:20696": [
+    "File:Kitamoto tomato curry.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:207337": [
+    "File:RedDot Burger.jpg",
+    "illustrative",
+    "category:Hamburger"
+  ],
+  "wikibooks:en:207575": [
+    "File:Rostas (ready and served).JPG",
+    "illustrative",
+    "category:Roast beef"
+  ],
+  "wikibooks:en:207578": [
+    "File:Fish, chips and mushy peas.jpg",
+    "illustrative",
+    "category:fish"
+  ],
+  "wikibooks:en:207596": [
+    "File:Lemonade - 27682817724.jpg",
+    "illustrative",
+    "category:drink"
+  ],
+  "wikibooks:en:20798": [
+    "File:Sashimi - Tokyo - Japan.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:209472": [
+    "File:Crispy salmon bones.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:209701": [
+    "File:Moroccan couscous at Zephyr Marrakech - Hôtel.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:209814": [
+    "File:Amalfitana Fish Stew - Tavola Di Famiglia 2026-02-27.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:21147": [
+    "File:Pound layer cake.jpg",
+    "illustrative",
+    "category:Cake"
+  ],
+  "wikibooks:en:21174": [
+    "File:Minestrone soup.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:21191": [
+    "File:DFC 3982 A steaming bowl of homemade vegetable soup garnished with chopped parsley served with a slice of rustic brown bread.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:21215": [
+    "File:Corned beef hash at the Creamery (Nina's breakfast).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:214526": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:215946": [
+    "File:Lemonade - 27682817724.jpg",
+    "illustrative",
+    "category:drink"
+  ],
+  "wikibooks:en:21736": [
+    "File:Waffles with Strawberries.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:21838": [
+    "File:Buko pie (Coconut custard pie) - Philippines 02.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:219687": [
+    "File:Manchet3.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:22044": [
+    "File:Fish, chips and mushy peas.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:22125": [
+    "File:Umeboshi.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:222569": [
+    "File:Champ-de-Mars - 20150801 15h29 (10620).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:22339": [
+    "File:Alicha 1.jpg",
+    "illustrative",
+    "recipe_source"
+  ],
+  "wikibooks:en:223408": [
+    "File:Blanc-manger on glass platter, full view.jpg",
+    "illustrative",
+    "category:Pudding"
+  ],
+  "wikibooks:en:224070": [
+    "File:Spicy Cheddar Dip with Olives.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:22494": [
+    "File:Tempura 02.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:23257": [
+    "File:Classic bubble tea.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:23259": [
+    "File:Chopped-egg-butter.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:236561": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:236562": [
+    "File:Vanille & Pomme Tatin, Orange Mocha, \"Poulain\" Chocolate Milk - Julien Plumart.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:236566": [
+    "File:FoodOmelete.jpg",
+    "illustrative",
+    "category:eggs"
+  ],
+  "wikibooks:en:237971": [
+    "File:Vedhmi.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:240909": [
+    "File:GreekSalad.jpg",
+    "illustrative",
+    "category:Salad"
+  ],
+  "wikibooks:en:24663": [
+    "File:Chicken parmigiana.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:246793": [
+    "File:Flank Steak Tacos with bomb-ass homemade tortillas by @smmendieta of @ssgastrogrub. (16245064948).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:25021": [
+    "File:Victoria Sponges.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:252225": [
+    "File:Dinner- baked halibut and organic spinach ravioli (9002391336).jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:253167": [
+    "File:Skillet cornbread (cropped).jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:253721": [
+    "File:Crispy Pani Puri.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:254805": [
+    "File:Flan pâtissier bron.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:254881": [
+    "File:Tee mit sahnewolke.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:25534": [
+    "File:Pancakes (Vegan) (Cropped).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:263111": [
+    "File:Khaman dhokla.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:263313": [
+    "File:Chhundo.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:26354": [
+    "File:Too much egg wash? (4866448751).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:26355": [
+    "File:Korean corn dog & fried dumplings - KOGI to-go Korean kitchen.jpg",
+    "illustrative",
+    "related_dish"
+  ],
+  "wikibooks:en:264493": [
+    "File:Spaghetti with Meat Sauce in Plastic Container.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:264763": [
+    "File:Milk Kulfi.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:26551": [
+    "File:Pulled pork while pulling.JPG",
+    "illustrative",
+    "category:Pulled pork"
+  ],
+  "wikibooks:en:266677": [
+    "File:Arbroath Smokies - geograph.org.uk - 481678.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:266899": [
+    "File:Cup of black tea.JPG",
+    "illustrative",
+    "category:Black tea"
+  ],
+  "wikibooks:en:26777": [
+    "File:Shevayachi kheer - 02.JPG",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:27270": [
+    "File:Wedding soup.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:277364": [
+    "File:Valeries chocolate chip cookies.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:282631": [
+    "File:Vegan Papaya Coconut Pudding Yin Yang Dessert (4347119441).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:283012": [
+    "File:Salt lassi.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:283018": [
+    "File:Bananasplit3015.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:283118": [
+    "File:Malpua.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:285181": [
+    "File:Ratatouille home cooked.jpg",
+    "illustrative",
+    "category:vegetable"
+  ],
+  "wikibooks:en:28927": [
+    "File:Recette pate brisee etape 6.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:28943": [
+    "File:Fruktsallad (Fruit salad).jpg",
+    "illustrative",
+    "category:Fruit salad"
+  ],
+  "wikibooks:en:293428": [
+    "File:Christmas day treats - Coquitos.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:293429": [
+    "File:Ensaladadefruta.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:29475": [
+    "File:Sütlaç (Turkish rice pudding).jpeg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:296144": [
+    "File:Prinsesstårta.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:297500": [
+    "File:Thai Tapioca Pudding.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:29917": [
+    "File:2014 Bruschetta The Larder Chiang Mai.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:30009": [
+    "File:Ambrosia salad.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:300150": [
+    "File:CandiedCamotesMX.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:302012": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:30449": [
+    "File:Met Flasche und Glas.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:306754": [
+    "File:Lancashire Parkin 5022.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:30754": [
+    "File:Chili Cheese Grilled Dog, Burger King (39434682664).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:308499": [
+    "File:Vegan Garden Corn Chowder with Chives (cropped).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:309998": [
+    "File:BakedPotatoWithButter.jpg",
+    "illustrative",
+    "category:Baked potato"
+  ],
+  "wikibooks:en:32254": [
+    "File:PBJ.png",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:3284": [
+    "File:Spare ribs with Chinese barbecue sauce cropped.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:32970": [
+    "File:Samosas (with potato- peas stuffing).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:33519": [
+    "File:Blanc-manger on glass platter, full view.jpg",
+    "illustrative",
+    "category:Pudding"
+  ],
+  "wikibooks:en:3410": [
+    "File:Blanc-manger on glass platter, full view.jpg",
+    "illustrative",
+    "category:Pudding"
+  ],
+  "wikibooks:en:3443": [
+    "File:Chutneykarnataka.jpg",
+    "illustrative",
+    "category:Chutney"
+  ],
+  "wikibooks:en:34553": [
+    "File:FoodOmelete.jpg",
+    "illustrative",
+    "category:eggs"
+  ],
+  "wikibooks:en:34623": [
+    "File:Spargel-Suppe (asparagus soup).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:34628": [
+    "File:NCI Visuals Food Muffins.jpg",
+    "illustrative",
+    "category:Muffin"
+  ],
+  "wikibooks:en:34643": [
+    "File:Chilaquiles at the Grand Cantina, Windsor, Ontario, 2025-09-01 04.jpg",
+    "dish",
+    "article_title"
+  ],
+  "wikibooks:en:34645": [
+    "File:Foodiesfeed.com pouring-honey-on-pancakes-with-walnuts.jpg",
+    "illustrative",
+    "category:Pancake"
+  ],
+  "wikibooks:en:34828": [
+    "File:Peanut butter cookies, September 2009.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:360469": [
+    "File:Sugar-free Homemade Chocolate.jpg",
+    "illustrative",
+    "recipe_source"
+  ],
+  "wikibooks:en:361319": [
+    "File:Pig feet ginger.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:36170": [
+    "File:SIMAL limoncello jp.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:369257": [
+    "File:Walnut cinnamon coffee cake.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:370553": [
+    "File:Kiwi Smoothie.jpg",
+    "illustrative",
+    "category:Smoothie"
+  ],
+  "wikibooks:en:372275": [
+    "File:Khanom-Tokyo-01.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:37231": [
+    "File:Kürbissuppe mit Kernöl.JPG",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:37342": [
+    "File:Waffles with Strawberries.jpg",
+    "illustrative",
+    "category:Waffle"
+  ],
+  "wikibooks:en:37643": [
+    "File:Tofu Scrambler.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:38074": [
+    "File:Corn soup.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:38078": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:38086": [
+    "File:HK QB 鰂魚涌 Quarry Bay 太古城中心 商場 CityPlaza Shopping Mall food shop April 2023 Px3 03 chocolate balls.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:381087": [
+    "File:Mishti doi 01.png",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:38141": [
+    "File:Blanc-manger on glass platter, full view.jpg",
+    "illustrative",
+    "category:Pudding"
+  ],
+  "wikibooks:en:38552": [
+    "File:Raspberry tart.jpg",
+    "illustrative",
+    "category:Tart"
+  ],
+  "wikibooks:en:38688": [
+    "File:BakedPotatoWithButter.jpg",
+    "illustrative",
+    "category:Baked potato"
+  ],
+  "wikibooks:en:38739": [
+    "File:Mammy’s Candied Sweet Potatoes.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:38747": [
+    "File:Brownies recipe.png",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:38748": [
+    "File:Little-Debbie-Fudge-Brownies.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:38872": [
+    "File:Baking oatmeal chocolate chip cookies 81.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:38989": [
+    "File:Hot milk cake02.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:38993": [
+    "File:Latte and dark coffee.jpg",
+    "illustrative",
+    "category:Coffee"
+  ],
+  "wikibooks:en:39069": [
+    "File:Fish, chips and mushy peas.jpg",
+    "illustrative",
+    "category:fish"
+  ],
+  "wikibooks:en:39094": [
+    "File:NCI iced tea.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:391389": [
+    "File:Seitan Platter (4139727246).jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:39237": [
+    "File:Baked oatmeal.JPG",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:39461": [
+    "File:Duck confit crepes with Cumberland sauce.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:39464": [
+    "File:Pulled pork while pulling.JPG",
+    "illustrative",
+    "category:Pulled pork"
+  ],
+  "wikibooks:en:3996": [
+    "File:FoodOmelete.jpg",
+    "illustrative",
+    "category:eggs"
+  ],
+  "wikibooks:en:402255": [
+    "File:Turkey with gravy and cranberry sauce, with side dishes of creamed corn and coleslaw.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:4030": [
+    "File:Preserved lemon in a clip top jar, 4 years old.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:403553": [
+    "File:Sous vide mashed potatoes.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:404365": [
+    "File:Eierpunsch (3185186964).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:405748": [
+    "File:Oatmeal (1).jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:40754": [
+    "File:Aglio e olio.jpg",
+    "illustrative",
+    "category:pasta"
+  ],
+  "wikibooks:en:408816": [
+    "File:Salmorejo cordouan.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:411571": [
+    "File:Bua loi - 2009-08-01 - 001.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:412224": [
+    "File:Mango Sticky Rice.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:413739": [
+    "File:Herrencreme 3.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:414624": [
+    "File:Lemonade - 27682817724.jpg",
+    "illustrative",
+    "category:drink"
+  ],
+  "wikibooks:en:414629": [
+    "File:Café mazagran.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:414652": [
+    "File:Cherry juice 259A7261.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:414856": [
+    "File:Yellow cornbread.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:415080": [
+    "File:Zkhoug vert.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:415277": [
+    "File:WikiCheese - Montgomery's Cheddar Somerset 01.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:4153": [
+    "File:Choco chip cookie.png",
+    "illustrative",
+    "category:Chocolate chip cookie"
+  ],
+  "wikibooks:en:415428": [
+    "File:Gözleme in Ankara.jpg",
+    "illustrative",
+    "recipe_source"
+  ],
+  "wikibooks:en:415630": [
+    "File:Three Bars (1).jpg",
+    "illustrative",
+    "category:Chocolate"
+  ],
+  "wikibooks:en:417017": [
+    "File:Rocky Road dessert.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:4207": [
+    "File:Grilled Vegetable Sandwich.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:421138": [
+    "File:SF Chocolate Store Peanut Butter Fudge (23161294465).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:4241": [
+    "File:Fairy cakes close up on tray.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:42441": [
+    "File:Blanc-manger on glass platter, full view.jpg",
+    "illustrative",
+    "category:Pudding"
+  ],
+  "wikibooks:en:424559": [
+    "File:Caprese salad in hk.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:424726": [
+    "File:Mint tea 18 30 07 491000.jpeg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:424790": [
+    "File:Homemade Flan.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:42754": [
+    "File:Southern Pecan Pie - Warm pecan pie & vanilla bean ice cream with melted chocolate, candied pecans, and sticky salted caramel sauce.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:42757": [
+    "File:Oatmeal Raisin Cookies.jpg",
+    "illustrative",
+    "category:Cookie"
+  ],
+  "wikibooks:en:43028": [
+    "File:Cottage cheese pancakes with berries (KETO, LCHF, Low Carb, Gluten free, FIT) - 52774785114.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:437408": [
+    "File:Viola x wittrockiana Delta Buttered Popcorn Mix 1zz.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:439225": [
+    "File:oatmealstoutbrownies.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:441355": [
+    "File:Foire aux jambons, 16-4-16 (Paris) - btv1b69461161.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:442737": [
+    "File:Baked cheesecake with raspberries and blueberries.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:443383": [
+    "File:Pasta with sausage.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:443404": [
+    "File:Pickle.jpg",
+    "illustrative",
+    "category:Pickled cucumber"
+  ],
+  "wikibooks:en:445216": [
+    "File:FoodOmelete.jpg",
+    "illustrative",
+    "category:eggs"
+  ],
+  "wikibooks:en:445961": [
+    "File:Ratatouille home cooked.jpg",
+    "illustrative",
+    "category:vegetable"
+  ],
+  "wikibooks:en:445996": [
+    "File:Pounded yam and melon soup.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:446112": [
+    "File:Chutneykarnataka.jpg",
+    "illustrative",
+    "category:Chutney"
+  ],
+  "wikibooks:en:446159": [
+    "File:Boli and Groundnut.png",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:446161": [
+    "File:Akamu (Pap) (Ogi) (cropped).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:446216": [
+    "File:Custard.png",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:446252": [
+    "File:Pasta salad closeup.JPG",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:446454": [
+    "File:Fish, chips and mushy peas.jpg",
+    "illustrative",
+    "category:fish"
+  ],
+  "wikibooks:en:446455": [
+    "File:Toasted coconut flakes.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:446578": [
+    "File:Kiwi Smoothie.jpg",
+    "illustrative",
+    "category:Smoothie"
+  ],
+  "wikibooks:en:446826": [
+    "File:BakedPotatoWithButter.jpg",
+    "illustrative",
+    "category:Baked potato"
+  ],
+  "wikibooks:en:446916": [
+    "File:Toasted coconut flakes.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:446954": [
+    "File:Poundo yam with eforiro and sauced turkey.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:446972": [
+    "File:Roasted yam.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:447088": [
+    "File:Boiled ripped plantain with egg stew.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:447089": [
+    "File:Amala and ewedu with gbegiri soup.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:447133": [
+    "File:Fufu 1.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:447136": [
+    "File:Soy milk brand event in Shibuya Stream 2.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:447277": [
+    "File:ManekiNeko horchata jar.jpg",
+    "illustrative",
+    "recipe_source"
+  ],
+  "wikibooks:en:447283": [
+    "File:Drying sweet potato.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:447304": [
+    "File:Asparagus soup (spargelsuppe).jpg",
+    "illustrative",
+    "category:Soup"
+  ],
+  "wikibooks:en:447334": [
+    "File:Bambara nuts.jpg",
+    "illustrative",
+    "recipe_source"
+  ],
+  "wikibooks:en:447528": [
+    "File:Nigerian Cheesy Sausage Masa.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:447597": [
+    "File:Party - fruit skewers (3863174408).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:447610": [
+    "File:Fruit ice lollies (8588758339).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:447636": [
+    "File:BakedPotatoWithButter.jpg",
+    "illustrative",
+    "category:Baked potato"
+  ],
+  "wikibooks:en:447638": [
+    "File:Lemonade - 27682817724.jpg",
+    "illustrative",
+    "category:drink"
+  ],
+  "wikibooks:en:447822": [
+    "File:Oatmeal Raisin Cookies.jpg",
+    "illustrative",
+    "category:Cookie"
+  ],
+  "wikibooks:en:449589": [
+    "File:Friggione.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:450501": [
+    "File:Sabrina's Banana Cream Pie, April 2010.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:451651": [
+    "File:Sous vide mashed potatoes.jpg",
+    "illustrative",
+    "category:Mashed potato"
+  ],
+  "wikibooks:en:451970": [
+    "File:Strawberry shortcake.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:451976": [
+    "File:BakedPotatoWithButter.jpg",
+    "illustrative",
+    "category:Baked potato"
+  ],
+  "wikibooks:en:451977": [
+    "File:Colcannon (5532418361).jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:452003": [
+    "File:Josef Navrátil - Boiled Lobster - O 5101 - National Gallery Prague.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:452137": [
+    "File:BakedPotatoWithButter.jpg",
+    "illustrative",
+    "category:Baked potato"
+  ],
+  "wikibooks:en:452173": [
+    "File:Foodiesfeed.com pouring-honey-on-pancakes-with-walnuts.jpg",
+    "illustrative",
+    "category:Pancake"
+  ],
+  "wikibooks:en:453099": [
+    "File:Plain Lassi in a glass.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:453108": [
+    "File:Cucumber-raita.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:453111": [
+    "File:Taj Mahal - Lamb Curry Madras.jpg",
+    "illustrative",
+    "category:Curry"
+  ],
+  "wikibooks:en:454105": [
+    "File:Siddu and ghee.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:455788": [
+    "File:Salt lassi.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:455789": [
+    "File:Salt lassi.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:456250": [
+    "File:Guacamole IMGP1271.jpg",
+    "dish",
+    "dish_title"
+  ],
+  "wikibooks:en:456307": [
+    "File:Meringue cookies.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:456325": [
+    "File:Chocolate milkshake ... 😋.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:456492": [
+    "File:Oatmeal Raisin Cookies.jpg",
+    "illustrative",
+    "category:Cookie"
+  ],
+  "wikibooks:en:456581": [
+    "File:Milk toast.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:456836": [
+    "File:Hibiscus tea.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:457028": [
+    "File:Spargel sauce hollandaise.jpg",
+    "illustrative",
+    "related_dish"
+  ],
+  "wikibooks:en:457054": [
+    "File:Boiled Yam and Egg Sauce.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:457055": [
+    "File:Fried Sweet Potatoe.jpg",
+    "illustrative",
+    "related_dish"
+  ],
+  "wikibooks:en:457097": [
+    "File:Ghribia (algerian cookie).jpg",
+    "illustrative",
+    "recipe_source"
+  ],
+  "wikibooks:en:457129": [
+    "File:Barbecue-Chicken-Wings 14392-480x360 (4791989370).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:457258": [
+    "File:Cup of black tea.JPG",
+    "illustrative",
+    "category:Black tea"
+  ],
+  "wikibooks:en:457298": [
+    "File:Green Smoothie.jpg",
+    "illustrative",
+    "recipe_source"
+  ],
+  "wikibooks:en:457359": [
+    "File:Maple Cream Cold Brew - Trading Post Coffee Roasters 2026-07-16.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:457549": [
+    "File:GreekSalad.jpg",
+    "illustrative",
+    "category:Salad"
+  ],
+  "wikibooks:en:457554": [
+    "File:Graines de sésame blond et noir.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:461091": [
+    "File:Raspberry tart.jpg",
+    "illustrative",
+    "category:Tart"
+  ],
+  "wikibooks:en:461095": [
+    "File:20200424 193302 Puff pastry with green asparagus and goat cheese.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:461379": [
+    "File:Whole-grain macaroni with vegan cheese-and-ham sauce (3077174208).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:461585": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:461854": [
+    "File:Wikidrink Sweet and Sour mix.png",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:461945": [
+    "File:ꠛꠤꠞꠣꠘ ꠜꠣꠔ.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:462078": [
+    "File:Korb mit Brötchen.JPG",
+    "illustrative",
+    "category:bread"
+  ],
+  "wikibooks:en:462101": [
+    "File:Korb mit Brötchen.JPG",
+    "illustrative",
+    "category:bread"
+  ],
+  "wikibooks:en:462144": [
+    "File:White russian (6776405633).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:462333": [
+    "File:African salad mostly prepared by the southeastern part of Nigeria especially in the eastern part. This meal is mostly prepared during festive seasons like new yam festival or marriage ceremony.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:465005": [
+    "File:Calamansi juice (Filipino lemonade).jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:465816": [
+    "File:Anchochilipowder.JPG",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:467882": [
+    "File:Sepiring Kek Batik.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:469466": [
+    "File:Oatmeal Raisin Cookies.jpg",
+    "illustrative",
+    "category:Cookie"
+  ],
+  "wikibooks:en:47324": [
+    "File:Apple pie 14.jpg",
+    "illustrative",
+    "category:pie"
+  ],
+  "wikibooks:en:47381": [
+    "File:Makizushi2.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:474496": [
+    "File:Banga Soup.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:476554": [
+    "File:Omo Tuo at a Ghanaian restaurant in Colorado.jpg",
+    "dish",
+    "article_title"
+  ],
+  "wikibooks:en:477595": [
+    "File:Batter for pancakes.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:480616": [
+    "File:Lemonade - 27682817724.jpg",
+    "illustrative",
+    "category:drink"
+  ],
+  "wikibooks:en:481190": [
+    "File:Cup of black tea.JPG",
+    "illustrative",
+    "category:Black tea"
+  ],
+  "wikibooks:en:481824": [
+    "File:Kkongboribap (cooked barley).jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:483151": [
+    "File:Lamb-stew.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:483707": [
+    "File:Wrapped fufu.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:48705": [
+    "File:FoodOmelete.jpg",
+    "illustrative",
+    "category:eggs"
+  ],
+  "wikibooks:en:488": [
+    "File:Tiramisu - Raffaele Diomede.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:489": [
+    "File:Blanc-manger on glass platter, full view.jpg",
+    "illustrative",
+    "category:Pudding"
+  ],
+  "wikibooks:en:49767": [
+    "File:Pound layer cake.jpg",
+    "illustrative",
+    "category:Cake"
+  ],
+  "wikibooks:en:5090": [
+    "File:Roasted Oysters (6639232205).jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:51860": [
+    "File:MongolianBuuz.JPG",
+    "illustrative",
+    "category:dumplings"
+  ],
+  "wikibooks:en:52304": [
+    "File:Bacon, lettuce, tomato, and avocado.jpg",
+    "illustrative",
+    "category:Sandwich"
+  ],
+  "wikibooks:en:53434": [
+    "File:Rice bubble cake.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:5710": [
+    "File:JerkChicken-Rice-and-KidneyBeans.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:62750": [
+    "File:Vegan Raw Chocolate Macaroons (14857950843).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:64885": [
+    "File:Triangular lemon squares.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:6495": [
+    "File:Rakott krumpli.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:66181": [
+    "File:Chocolate Crinkles.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:6645": [
+    "File:Cotechino-Servito-Polenta-Lenticchie.jpg",
+    "dish",
+    "article_title"
+  ],
+  "wikibooks:en:6760": [
+    "File:Lemonade - 27682817724.jpg",
+    "dish",
+    "article_title"
+  ],
+  "wikibooks:en:70189": [
+    "File:Baked chess pie.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:7272": [
+    "File:Spätzlepresse2.jpg",
+    "illustrative",
+    "recipe_source"
+  ],
+  "wikibooks:en:7281": [
+    "File:Baigan ( Brinjal ) Bharta.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:77026": [
+    "File:Costata Romanesco zucchini and zucchini bread.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:78658": [
+    "File:A Crafnant chip buttie - geograph.org.uk - 1174071.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:80236": [
+    "File:Lemonade - 27682817724.jpg",
+    "illustrative",
+    "category:drink"
+  ],
+  "wikibooks:en:81015": [
+    "File:Yorkshire puddings in tin.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:81408": [
+    "File:Nachos-cheese.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:8233": [
+    "File:Three Bars (1).jpg",
+    "illustrative",
+    "category:Chocolate"
+  ],
+  "wikibooks:en:82415": [
+    "File:Lunch sauces.jpg",
+    "illustrative",
+    "category:sauce"
+  ],
+  "wikibooks:en:82747": [
+    "File:Lima Soufflé Cake Hibiscus Black Pepper Syrup Vanilla Whipped Cream (34999240041).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:83006": [
+    "File:HK style pan-fried noodles 2.JPG",
+    "illustrative",
+    "category:noodles"
+  ],
+  "wikibooks:en:8350": [
+    "File:White chocolate mousse.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:85421": [
+    "File:Sachertorte DSC03027.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:en:85599": [
+    "File:Pastel de nata septembre 2015.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:90012": [
+    "File:Marshmallow knots, candied almonds, cake bites (16049153281).jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:9024": [
+    "File:Bay Scallop Ceviche.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:92008": [
+    "File:Oatmeal Raisin Cookies.jpg",
+    "illustrative",
+    "category:Cookie"
+  ],
+  "wikibooks:en:94329": [
+    "File:Skimmed milk quark on spoon.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:95957": [
+    "File:Pulled pork while pulling.JPG",
+    "illustrative",
+    "category:Pulled pork"
+  ],
+  "wikibooks:en:96179": [
+    "File:Skillet cornbread (cropped).jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:en:96861": [
+    "File:Makki di Roti Te Sarson Da Saag.jpg",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:97024": [
+    "File:Peanut butter sandwich with grated chocolate.png",
+    "dish",
+    "file_title"
+  ],
+  "wikibooks:en:97479": [
+    "File:Eggnog2.jpg",
+    "dish",
+    "article_title"
+  ],
+  "wikibooks:en:97871": [
+    "File:Rocky Road dessert.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:en:97874": [
+    "File:Trifle.jpg",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:ru:10126": [
+    "File:Culinique Ice Cream Cake.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:ru:10657": [
+    "File:Porridge.jpg",
+    "illustrative",
+    "curated"
+  ],
+  "wikibooks:ru:11295": [
+    "File:Afghan Palo.jpg",
+    "illustrative",
+    "category:Pilaf"
+  ],
+  "wikibooks:ru:11328": [
+    "File:MongolianBuuz.JPG",
+    "dish",
+    "recipe_source"
+  ],
+  "wikibooks:ru:12632": [
+    "File:A small cup of coffee.JPG",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:ru:31010": [
+    "File:Ra-bokki.jpg",
+    "dish",
+    "curated"
+  ],
+  "wikibooks:ru:34357": [
+    "File:Red bean paste anko.JPG",
+    "dish",
+    "curated"
+  ],
+  "collection:cozy-dinners": [
+    "File:Leek Soup.jpg",
+    "collection",
+    "curated"
+  ]
+}

@@ -32,6 +32,7 @@ final class Recipe {
     final List<String> sourceIngredients = new ArrayList<>();
     String revisionUrl;
     String licenseUrl;
+    String notes;
     List<Tag> tags = Collections.emptyList();
     List<String> missingTagAxes = Collections.emptyList();
 

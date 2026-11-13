@@ -12,11 +12,22 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.TypefaceSpan;
+import android.text.style.URLSpan;
+import android.text.util.Linkify;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityManager;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -24,6 +35,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -39,30 +51,56 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 public final class MainActivity extends Activity {
-    private static final int PAPER = Color.rgb(248, 244, 233);
-    private static final int INK = Color.rgb(39, 44, 34);
-    private static final int GREEN = Color.rgb(54, 83, 59);
+    private static final int PAPER = 0xfffff9ee;
+    private static final int INK = 0xff322319;
+    private static final int ACCENT = 0xff7c3b21;
+    private static final int MUTED = 0xff68523d;
+    private static final int CARD = 0xfffffdf8;
+    private static final int SAND = 0xfff4e5d3;
+    private static final int SAGE = 0xffe5eadb;
     private static final int PAGE_SIZE = 24;
     private static final String MEASUREMENT_PREFERENCE = "measurement_system";
+    private static final String SAVED_RECIPES_PREFERENCE = "saved_recipe_ids";
 
-    private enum Screen { HOME, DISCOVERY, PANTRY }
+    private enum Screen { HOME, DISCOVERY, PANTRY, SAVED }
+
+    private record PantryInput(String ingredients, String minutes, String servings, boolean includeBasics) {
+        static PantryInput read(Bundle state) {
+            return new PantryInput(state.getString("pantry", ""), state.getString("minutes", "20"),
+                    state.getString("servings", "2"), state.getBoolean("basics", true));
+        }
+
+        void write(Bundle state) {
+            state.putString("pantry", ingredients);
+            state.putString("minutes", minutes);
+            state.putString("servings", servings);
+            state.putBoolean("basics", includeBasics);
+        }
+    }
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
+    private final ExecutorService imageWorker = Executors.newSingleThreadExecutor();
+    private RecipePhotos photos;
     private SharedPreferences preferences;
     private RecipeUnits.System measurementSystem;
     private Button mainUnits;
+    private Button boardButton;
     private Button detailUnits;
     private Screen screen = Screen.HOME;
-    private boolean pantrySearched;
+    private PantryInput submittedPantry;
     private String discoveryQuery = "";
+    private String collectionTitle = "";
     private int pageOffset;
     private Map<String, Set<String>> selectedTags = new LinkedHashMap<>();
     private Integer discoveryTime;
     private List<RecipeCatalog.TagAxis> tagAxes = Collections.emptyList();
     private int requestNumber;
+    private Future<?> searchTask;
     private FrameLayout root;
     private LinearLayout mainScreen;
     private LinearLayout discoveryControls;
@@ -77,31 +115,49 @@ public final class MainActivity extends Activity {
     private LinearLayout selectedRow;
     private List<String> titleHints = Collections.emptyList();
     private boolean editingQuery;
-    private final Runnable submitQuery = () -> discover(0, 0);
+    private final Runnable submitQuery = () -> loadDiscoveryPage(requestNumber, 0, 0);
     private View detailScreen;
+    private ScrollView detailScroll;
+    private int pendingDetailScroll;
     private String openRecipeId;
     private int openRecipeServings;
+    private final Set<Integer> checkedIngredients = new LinkedHashSet<>();
     private EditText pantry;
     private EditText minutes;
     private EditText servings;
     private CheckBox basics;
     private TextView status;
+    private TextView collectionHeading;
     private LinearLayout results;
 
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
+        photos = new RecipePhotos(getAssets());
         preferences = getSharedPreferences("settings", MODE_PRIVATE);
         measurementSystem = RecipeUnits.System.IMPERIAL.name().equals(preferences.getString(MEASUREMENT_PREFERENCE, ""))
                 ? RecipeUnits.System.IMPERIAL : RecipeUnits.System.METRIC;
+        PantryInput pantryDraft = PantryInput.read(state == null ? Bundle.EMPTY : state);
         if (state != null) {
             String savedScreen = state.getString("screen", Screen.HOME.name());
             screen = "CATALOG".equals(savedScreen) ? Screen.DISCOVERY : Screen.valueOf(savedScreen);
-            pantrySearched = state.getBoolean("pantrySearched", screen == Screen.PANTRY);
+            Bundle submitted = state.getBundle("submittedPantry");
+            if (submitted != null) {
+                submittedPantry = PantryInput.read(submitted);
+            } else if (!state.containsKey("submittedPantry")
+                    && state.getBoolean("pantrySearched", screen == Screen.PANTRY)) {
+                submittedPantry = pantryDraft;
+            }
             discoveryQuery = state.getString("discoveryQuery", state.getString("catalogQuery", ""));
+            collectionTitle = state.getString("collectionTitle", "");
             pageOffset = state.getInt("pageOffset");
             openRecipeId = state.getString("openRecipeId");
             openRecipeServings = state.getInt("openRecipeServings");
+            pendingDetailScroll = state.getInt("detailScrollY");
+            ArrayList<Integer> checked = state.getIntegerArrayList("checkedIngredients");
+            if (checked != null) {
+                checkedIngredients.addAll(checked);
+            }
             discoveryTime = state.containsKey("discoveryTime") ? state.getInt("discoveryTime") : null;
             Bundle savedTags = state.getBundle("tags");
             if (savedTags != null) {
@@ -110,10 +166,7 @@ public final class MainActivity extends Activity {
                 }
             }
         }
-        render(state == null ? "" : state.getString("pantry", ""),
-                state == null ? "20" : state.getString("minutes", "20"),
-                state == null ? "2" : state.getString("servings", "2"),
-                state == null || state.getBoolean("basics", true));
+        render(pantryDraft);
         restoreResults(state == null ? 0 : state.getInt("scrollY"));
         restoreRecipe();
     }
@@ -121,17 +174,23 @@ public final class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
-        state.putString("pantry", value(pantry));
-        state.putString("minutes", value(minutes));
-        state.putString("servings", value(servings));
-        state.putBoolean("basics", basics.isChecked());
+        pantryInput().write(state);
+        Bundle submitted = null;
+        if (submittedPantry != null) {
+            submitted = new Bundle();
+            submittedPantry.write(submitted);
+        }
+        state.putBundle("submittedPantry", submitted);
         state.putString("screen", screen.name());
-        state.putBoolean("pantrySearched", pantrySearched);
         state.putString("discoveryQuery", discoveryQuery);
+        state.putString("collectionTitle", collectionTitle);
         state.putInt("pageOffset", pageOffset);
         state.putInt("scrollY", scroll.getScrollY());
         state.putString("openRecipeId", openRecipeId);
         state.putInt("openRecipeServings", openRecipeServings);
+        state.putInt("detailScrollY", pendingDetailScroll != 0 || detailScroll == null
+                ? pendingDetailScroll : detailScroll.getScrollY());
+        state.putIntegerArrayList("checkedIngredients", new ArrayList<>(checkedIngredients));
         if (discoveryTime != null) {
             state.putInt("discoveryTime", discoveryTime);
         }
@@ -142,8 +201,9 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        queryField.removeCallbacks(submitQuery);
+        invalidateSearch();
         worker.shutdownNow();
+        imageWorker.shutdownNow();
         super.onDestroy();
     }
 
@@ -187,17 +247,27 @@ public final class MainActivity extends Activity {
         return label;
     }
 
+    private TextView headline(String content, int size) {
+        TextView title = text(content, size, true);
+        title.setTypeface(Typeface.create("serif", Typeface.BOLD));
+        if (Build.VERSION.SDK_INT >= 28) {
+            title.setAccessibilityHeading(true);
+        }
+        return title;
+    }
+
     private Button button(String label, boolean primary) {
         Button button = new Button(this);
         button.setText(label);
         button.setAllCaps(false);
-        if (primary) {
-            button.setTextColor(Color.WHITE);
-            button.setBackground(surface(GREEN, 12));
-            button.setPadding(dp(16), dp(10), dp(16), dp(10));
-        } else {
-            button.setTextColor(GREEN);
-        }
+        button.setStateListAnimator(null);
+        button.setElevation(0);
+        button.setTextColor(primary ? Color.WHITE : ACCENT);
+        button.setMinHeight(dp(48));
+        button.setMinimumHeight(dp(48));
+        button.setBackground(new RippleDrawable(ColorStateList.valueOf(0x347c3b21),
+                surface(primary ? ACCENT : SAND, 14), null));
+        button.setPadding(dp(12), dp(8), dp(12), dp(8));
         return button;
     }
 
@@ -210,7 +280,7 @@ public final class MainActivity extends Activity {
         return field;
     }
 
-    private void render(String products, String time, String portions, boolean includeBasics) {
+    private void render(PantryInput pantryDraft) {
         root = new FrameLayout(this);
         root.setBackgroundColor(PAPER);
         mainScreen = column();
@@ -230,10 +300,12 @@ public final class MainActivity extends Activity {
 
         LinearLayout header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(dp(12), 0, dp(8), 0);
-        header.addView(text("What’s for dinner?", 23, true),
+        header.setMinimumHeight(dp(58));
+        header.setPadding(dp(16), 0, dp(12), 0);
+        header.addView(text("Dinner Picker", 18, true),
                 new LinearLayout.LayoutParams(0, -2, 1));
-        header.addView(chip("Ideas", false, this::openHome));
+        boardButton = chip("Board", false, this::openHome);
+        header.addView(boardButton);
         mainUnits = unitsChip(null);
         header.addView(mainUnits);
         mainScreen.addView(header);
@@ -250,7 +322,9 @@ public final class MainActivity extends Activity {
         addIdeas(home);
         pantryPanel = column();
         page.addView(pantryPanel);
-        addPantryControls(pantryPanel, products, time, portions, includeBasics);
+        addPantryControls(pantryPanel, pantryDraft);
+        collectionHeading = headline("", 28);
+        page.addView(collectionHeading);
         status = text("", 16, true);
         status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         page.addView(status);
@@ -263,36 +337,77 @@ public final class MainActivity extends Activity {
         switch (screen) {
             case DISCOVERY -> discover(pageOffset, position);
             case PANTRY -> {
-                if (pantrySearched) {
-                    search(position);
+                if (submittedPantry != null) {
+                    search(submittedPantry, position);
                 }
             }
+            case SAVED -> loadSavedRecipes(position);
             case HOME -> { }
         }
     }
 
     private void addIdeas(LinearLayout page) {
-        page.addView(text("Ideas for today", 19, true));
-        addChoices(page, Arrays.asList(
-                preset("Cozy dinner", null, "mood", "cozy", "meal", "dinner"),
-                preset("Easy breakfast", null, "meal", "breakfast", "difficulty", "easy"),
-                preset("Baking for tea", null, "dish_type", "baking", "occasion", "tea"),
-                preset("Quick lunch", 20, "meal", "lunch"),
-                preset("For guests", null, "occasion", "guests"),
-                preset("Something new", null, "novelty", "discovery")));
-
-        Button all = button("Browse all recipes", true);
-        all.setOnClickListener(view -> {
+        page.addView(headline("What’s for dinner?", 34));
+        Button searchRecipes = button("Search recipes", false);
+        searchRecipes.setOnClickListener(view -> {
+            collectionTitle = "";
             setQuery("");
             applyFilters(Collections.emptyMap(), null);
+            queryField.requestFocus();
+            getSystemService(InputMethodManager.class).showSoftInput(queryField, InputMethodManager.SHOW_IMPLICIT);
         });
-        page.addView(all);
-        Button byIngredients = button("Search by ingredients", false);
-        byIngredients.setOnClickListener(view -> {
+        Button pantry = button("Pantry", false);
+        pantry.setOnClickListener(view -> {
             openScreen(Screen.PANTRY);
             restoreResults(0);
         });
-        page.addView(byIngredients);
+        addChoices(page, Arrays.asList(searchRecipes, pantry));
+        Button saved = button("Saved recipes", false);
+        saved.setOnClickListener(view -> {
+            openScreen(Screen.SAVED);
+            loadSavedRecipes(0);
+        });
+        page.addView(saved);
+
+        FrameLayout feature = new FrameLayout(this);
+        feature.setBackground(surface(0xff553e2e, 20));
+        feature.setClipToOutline(true);
+        FrameLayout.LayoutParams match = new FrameLayout.LayoutParams(-1, -1);
+        ImageView cover = photoView();
+        feature.addView(cover, match);
+        bindPhoto(cover, RecipePhotos.COZY_DINNERS, false, null);
+        Button cozy = preset("Cozy dinners", null, "mood", "cozy", "meal", "dinner");
+        SpannableString caption = new SpannableString("Cozy dinners\nExplore collection →");
+        int actionStart = "Cozy dinners\n".length();
+        caption.setSpan(new RelativeSizeSpan(0.65f), actionStart, caption.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        caption.setSpan(new TypefaceSpan("sans-serif"), actionStart, caption.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        cozy.setText(caption);
+        cozy.setContentDescription("Cozy dinners");
+        cozy.setGravity(Gravity.BOTTOM | Gravity.START);
+        cozy.setTextColor(Color.WHITE);
+        cozy.setTextSize(22);
+        cozy.setTypeface(Typeface.create("serif", Typeface.BOLD));
+        cozy.setPadding(dp(16), dp(12), dp(16), dp(16));
+        GradientDrawable shade = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,
+                new int[] {0xf224160f, 0x5524160f, 0x0524160f});
+        cozy.setBackground(new RippleDrawable(ColorStateList.valueOf(0x35ffffff), shade, null));
+        feature.addView(cozy, new FrameLayout.LayoutParams(-1, -1));
+        LinearLayout.LayoutParams featured = new LinearLayout.LayoutParams(-1, dp(188));
+        featured.setMargins(0, dp(14), 0, dp(12));
+        page.addView(feature, featured);
+
+        TextView heading = text("Browse collections", 19, true);
+        if (Build.VERSION.SDK_INT >= 28) {
+            heading.setAccessibilityHeading(true);
+        }
+        page.addView(heading);
+        addChoices(page, Arrays.asList(
+                preset("Under 30 min", 30),
+                collectionTile("For guests", "occasion", "guests"),
+                preset("Something new", null, "novelty", "discovery"),
+                collectionTile("Breakfast", "meal", "breakfast"),
+                preset("Baking for tea", null, "dish_type", "baking", "occasion", "tea"),
+                preset("Quick lunch", 20, "meal", "lunch")));
     }
 
     private void addSearchControls(LinearLayout parent) {
@@ -352,10 +467,10 @@ public final class MainActivity extends Activity {
                     return;
                 }
                 discoveryQuery = text.toString();
-                requestNumber++;
+                collectionTitle = "";
                 titleHints = Collections.emptyList();
                 updateHints();
-                queryField.removeCallbacks(submitQuery);
+                beginDiscovery(0);
                 queryField.postDelayed(submitQuery, 180);
             }
             @Override public void afterTextChanged(Editable text) {}
@@ -397,9 +512,9 @@ public final class MainActivity extends Activity {
         chip.setMinWidth(dp(40));
         chip.setMinimumWidth(dp(40));
         chip.setPadding(dp(9), 0, dp(9), 0);
-        chip.setTextColor(selected ? Color.WHITE : GREEN);
-        chip.setBackground(new RippleDrawable(ColorStateList.valueOf(Color.argb(40, 54, 83, 59)),
-                surface(selected ? GREEN : Color.rgb(232, 235, 221), 16), null));
+        chip.setTextColor(selected ? Color.WHITE : ACCENT);
+        chip.setBackground(new RippleDrawable(ColorStateList.valueOf(0x347c3b21),
+                surface(selected ? ACCENT : SAND, 16), null));
         chip.setOnClickListener(view -> action.run());
         return chip;
     }
@@ -464,8 +579,7 @@ public final class MainActivity extends Activity {
     }
 
     private void openScreen(Screen destination) {
-        requestNumber++;
-        queryField.removeCallbacks(submitQuery);
+        invalidateSearch();
         dismissKeyboard();
         screen = destination;
         status.setText("");
@@ -477,7 +591,16 @@ public final class MainActivity extends Activity {
     private void updateScreen() {
         home.setVisibility(screen == Screen.HOME ? View.VISIBLE : View.GONE);
         pantryPanel.setVisibility(screen == Screen.PANTRY ? View.VISIBLE : View.GONE);
-        discoveryControls.setVisibility(screen == Screen.PANTRY ? View.GONE : View.VISIBLE);
+        discoveryControls.setVisibility(screen == Screen.DISCOVERY ? View.VISIBLE : View.GONE);
+        boardButton.setVisibility(screen == Screen.HOME ? View.GONE : View.VISIBLE);
+        status.setVisibility(screen == Screen.HOME ? View.GONE : View.VISIBLE);
+        String heading = switch (screen) {
+            case SAVED -> "Saved recipes";
+            case DISCOVERY -> collectionTitle;
+            default -> "";
+        };
+        collectionHeading.setText(heading);
+        collectionHeading.setVisibility(heading.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
     private void addChoices(LinearLayout parent, List<? extends View> choices) {
@@ -490,7 +613,7 @@ public final class MainActivity extends Activity {
                 int index = start + column;
                 View choice = index < choices.size() ? choices.get(index) : new View(this);
                 LinearLayout.LayoutParams spacing = new LinearLayout.LayoutParams(0, -2, 1);
-                spacing.setMargins(dp(2), 0, dp(2), 0);
+                spacing.setMargins(dp(2), dp(3), dp(2), dp(3));
                 row.addView(choice, spacing);
             }
             parent.addView(row);
@@ -499,14 +622,23 @@ public final class MainActivity extends Activity {
 
     private Button preset(String label, Integer time, String... tags) {
         Button idea = button(label, false);
+        idea.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        idea.setMinimumHeight(dp(61));
         idea.setOnClickListener(view -> {
             Map<String, Set<String>> picks = new LinkedHashMap<>();
             for (int i = 0; i < tags.length; i += 2) {
                 picks.put(tags[i], Collections.singleton(tags[i + 1]));
             }
             setQuery("");
-            applyFilters(picks, time);
+            applyFilters(picks, time, label);
         });
+        return idea;
+    }
+
+    private Button collectionTile(String label, String... tags) {
+        Button idea = preset(label, null, tags);
+        idea.setBackground(new RippleDrawable(ColorStateList.valueOf(0x34495633),
+                surface(SAGE, 14), null));
         return idea;
     }
 
@@ -708,6 +840,11 @@ public final class MainActivity extends Activity {
     }
 
     private void applyFilters(Map<String, Set<String>> tags, Integer time) {
+        applyFilters(tags, time, "");
+    }
+
+    private void applyFilters(Map<String, Set<String>> tags, Integer time, String collection) {
+        collectionTitle = collection;
         selectedTags = tags;
         discoveryTime = time;
         dismissKeyboard();
@@ -716,46 +853,66 @@ public final class MainActivity extends Activity {
     }
 
     private void discover(int offset, int position) {
+        loadDiscoveryPage(beginDiscovery(offset), offset, position);
+    }
+
+    private int invalidateSearch() {
         queryField.removeCallbacks(submitQuery);
-        int id = ++requestNumber;
+        if (searchTask != null) {
+            searchTask.cancel(false);
+            searchTask = null;
+        }
+        return ++requestNumber;
+    }
+
+    private boolean isCurrentSearch(int id) {
+        return id == requestNumber && !isDestroyed();
+    }
+
+    private int beginDiscovery(int offset) {
+        int id = invalidateSearch();
         screen = Screen.DISCOVERY;
         updateScreen();
         pageOffset = offset;
+        results.removeAllViews();
         status.setText("Finding matching recipes…");
+        return id;
+    }
+
+    private void loadDiscoveryPage(int id, int offset, int position) {
         String title = discoveryQuery;
         Map<String, Set<String>> tags = selectedTags;
         Integer time = discoveryTime;
-        worker.execute(() -> {
+        searchTask = worker.submit(() -> {
             try {
                 RecipeCatalog.CatalogPage page = RecipeCatalog.discover(
                         getApplicationContext(), title, tags, time, offset, PAGE_SIZE);
                 runOnUiThread(() -> {
-                    if (isDestroyed() || id != requestNumber) {
-                        return;
+                    if (isCurrentSearch(id)) {
+                        renderDiscoveryPage(page, offset);
+                        restoreScroll(id, position);
                     }
-                    results.removeAllViews();
-                    titleHints = page.titleHints;
-                    updateHints();
-                    boolean noExact = page.total == 0 || page.partial;
-                    status.setText(noExact ? "No exact matches"
-                            : "Recipes found · " + page.total);
-                    showRefinements(page.refinements);
-                    if (page.partial) {
-                        results.addView(text("Similar recipes · " + page.total, 17, true));
-                    }
-                    if (page.total > 0) {
-                        showCards(page.cards, 0);
-                        paginate(offset, page.total, next -> discover(next, 0));
-                    }
-                    if (page.total == 0 && page.refinements.isEmpty()) {
-                        results.addView(text("Try another recipe name or clear the filters.", 15, false));
-                    }
-                    restoreScroll(id, position);
                 });
             } catch (IOException | android.database.SQLException error) {
                 reportCatalogError(id);
             }
         });
+    }
+
+    private void renderDiscoveryPage(RecipeCatalog.CatalogPage page, int offset) {
+        titleHints = page.titleHints;
+        updateHints();
+        status.setText(page.total == 0 || page.partial ? "No exact matches" : "Recipes found · " + page.total);
+        showRefinements(page.refinements);
+        if (page.partial) {
+            results.addView(text("Similar recipes · " + page.total, 17, true));
+        }
+        if (page.total > 0) {
+            showCards(page.cards, 0);
+            paginate(offset, page.total, next -> discover(next, 0));
+        } else if (page.refinements.isEmpty()) {
+            results.addView(text("Try another recipe name or clear the filters.", 15, false));
+        }
     }
 
     private void showRefinements(List<RecipeCatalog.Refinement> options) {
@@ -805,16 +962,15 @@ public final class MainActivity extends Activity {
 
     private void restoreScroll(int request, int position) {
         scroll.post(() -> {
-            if (!isDestroyed() && request == requestNumber) {
+            if (isCurrentSearch(request)) {
                 scroll.scrollTo(0, position);
             }
         });
     }
 
-    private void addPantryControls(LinearLayout panel, String products, String time,
-                                   String portions, boolean includeBasics) {
+    private void addPantryControls(LinearLayout panel, PantryInput draft) {
         panel.addView(text("Search by ingredients", 19, true));
-        pantry = field(products, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        pantry = field(draft.ingredients(), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         pantry.setMinLines(2);
         pantry.setHint("Eggs, tomatoes, cheese…");
         pantry.setContentDescription("Available ingredients");
@@ -834,9 +990,9 @@ public final class MainActivity extends Activity {
         timeColumn.setPadding(0, 0, dp(10), 0);
         fields.addView(timeColumn, new LinearLayout.LayoutParams(0, -2, 1));
         fields.addView(servingsColumn, new LinearLayout.LayoutParams(0, -2, 1));
-        minutes = field(time, InputType.TYPE_CLASS_NUMBER);
+        minutes = field(draft.minutes(), InputType.TYPE_CLASS_NUMBER);
         minutes.setContentDescription("Maximum minutes");
-        servings = field(portions, InputType.TYPE_CLASS_NUMBER);
+        servings = field(draft.servings(), InputType.TYPE_CLASS_NUMBER);
         servings.setContentDescription("Number of servings");
         timeColumn.addView(text("Up to, min", 15, true));
         timeColumn.addView(minutes);
@@ -846,10 +1002,13 @@ public final class MainActivity extends Activity {
 
         basics = new CheckBox(this);
         basics.setText("Include water, salt and vegetable oil");
-        basics.setChecked(includeBasics);
+        basics.setChecked(draft.includeBasics());
         panel.addView(basics);
         Button submit = button("Find dinner", true);
-        submit.setOnClickListener(view -> search(-1));
+        submit.setOnClickListener(view -> {
+            submittedPantry = pantryInput();
+            search(submittedPantry, -1);
+        });
         panel.addView(submit);
     }
 
@@ -857,16 +1016,18 @@ public final class MainActivity extends Activity {
         return field.getText().toString().trim();
     }
 
-    private void search(int position) {
-        queryField.removeCallbacks(submitQuery);
+    private PantryInput pantryInput() {
+        return new PantryInput(value(pantry), value(minutes), value(servings), basics.isChecked());
+    }
+
+    private void search(PantryInput input, int position) {
+        int id = invalidateSearch();
         dismissKeyboard();
-        int id = ++requestNumber;
         screen = Screen.PANTRY;
-        pantrySearched = true;
         updateScreen();
         pageOffset = 0;
         results.removeAllViews();
-        String ingredients = value(pantry);
+        String ingredients = input.ingredients();
         if (ingredients.replaceAll("[,;\\s]+", "").isEmpty()) {
             status.setText("Enter at least one ingredient.");
             return;
@@ -874,8 +1035,8 @@ public final class MainActivity extends Activity {
         int limit;
         int people;
         try {
-            limit = Integer.parseInt(value(minutes));
-            people = Integer.parseInt(value(servings));
+            limit = Integer.parseInt(input.minutes());
+            people = Integer.parseInt(input.servings());
             if (limit < 5 || limit > 120 || people < 1 || people > 6) {
                 throw new NumberFormatException();
             }
@@ -884,14 +1045,13 @@ public final class MainActivity extends Activity {
             return;
         }
         status.setText("Finding recipes…");
-        boolean includeBasics = basics.isChecked();
-        worker.execute(() -> {
+        searchTask = worker.submit(() -> {
             try {
-                List<RecipeCatalog.Card> cards = RecipeCatalog.find(
-                        getApplicationContext(), ingredients, limit, includeBasics);
+                RecipeCatalog.PantryResult found = RecipeCatalog.findPantry(
+                        getApplicationContext(), ingredients, limit, input.includeBasics());
                 runOnUiThread(() -> {
-                    if (!isDestroyed() && id == requestNumber) {
-                        showResults(cards, people);
+                    if (isCurrentSearch(id)) {
+                        showPantryResults(found, people);
                         restoreScroll(id, position < 0 ? status.getTop() : position);
                     }
                 });
@@ -916,30 +1076,63 @@ public final class MainActivity extends Activity {
 
     private void reportCatalogError(int id) {
         runOnUiThread(() -> {
-            if (!isDestroyed() && id == requestNumber) {
+            if (isCurrentSearch(id)) {
                 results.removeAllViews();
                 status.setText("Could not read the local catalog.");
             }
         });
     }
 
-    private void showResults(List<RecipeCatalog.Card> cards, int people) {
-        if (cards.isEmpty()) {
+    private void showPantryResults(RecipeCatalog.PantryResult found, int people) {
+        if (!found.cards().isEmpty()) {
+            status.setText("Recipe cards: " + found.cards().size());
+            showCards(found.cards(), people);
+        } else if (found.suggestions().isEmpty()) {
             status.setText("No matching recipes. Try adding ingredients or increasing the time.");
+        } else {
+            status.setText("No exact matches. These recipes need one more ingredient.");
+            for (RecipeCatalog.PantrySuggestion suggestion : found.suggestions()) {
+                LinearLayout card = recipeCard();
+                addRecipeRow(card, suggestion.recipe(), people);
+                card.addView(text("Missing: " + suggestion.missingIngredient(), 15, true));
+            }
+        }
+    }
+
+    private Set<String> savedRecipeIds() {
+        return preferences.getStringSet(SAVED_RECIPES_PREFERENCE, Collections.emptySet());
+    }
+
+    private void loadSavedRecipes(int position) {
+        int id = invalidateSearch();
+        Set<String> saved = new LinkedHashSet<>(savedRecipeIds());
+        results.removeAllViews();
+        if (saved.isEmpty()) {
+            status.setText("Save a recipe to find it here later.");
             return;
         }
-        status.setText("Recipe cards: " + cards.size());
-        showCards(cards, people);
+        status.setText("Loading saved recipes…");
+        searchTask = worker.submit(() -> {
+            try {
+                List<Recipe> recipes = RecipeCatalog.savedRecipes(getApplicationContext(), saved);
+                runOnUiThread(() -> {
+                    if (isCurrentSearch(id)) {
+                        status.setText(recipes.isEmpty() ? "Saved recipes are unavailable in this catalog." : "");
+                        for (Recipe recipe : recipes) {
+                            addRecipeRow(recipeCard(), recipe, 0);
+                        }
+                        restoreScroll(id, position);
+                    }
+                });
+            } catch (IOException | android.database.SQLException error) {
+                reportCatalogError(id);
+            }
+        });
     }
 
     private void showCards(List<RecipeCatalog.Card> cards, int people) {
         for (RecipeCatalog.Card card : cards) {
-            LinearLayout item = column();
-            item.setBackground(surface(Color.rgb(255, 252, 244), 14));
-            item.setPadding(dp(14), dp(10), dp(14), dp(10));
-            LinearLayout.LayoutParams spacing = new LinearLayout.LayoutParams(-1, -2);
-            spacing.bottomMargin = dp(10);
-            results.addView(item, spacing);
+            LinearLayout item = recipeCard();
             boolean discovery = screen == Screen.DISCOVERY;
             if (!discovery || card.variants.size() > 1) {
                 item.addView(text(card.label(), 21, true));
@@ -951,19 +1144,115 @@ public final class MainActivity extends Activity {
                 }
             }
             for (Recipe recipe : card.variants) {
-                String label = recipe.minutes > 0 ? recipe.title + " · " + recipe.minutes + " min"
-                        : recipe.title;
-                Button details = button(label, false);
-                if (discovery && card.variants.size() == 1) {
-                    details.setTextSize(18);
-                }
-                details.setOnClickListener(view -> showRecipe(recipe, people));
-                item.addView(details);
+                addRecipeRow(item, recipe, people);
                 if (discovery) {
                     addVariantTags(item, recipe);
                 }
             }
         }
+    }
+
+    private LinearLayout recipeCard() {
+        LinearLayout card = column();
+        card.setBackground(surface(CARD, 18));
+        card.setPadding(dp(12), dp(9), dp(12), dp(9));
+        LinearLayout.LayoutParams spacing = new LinearLayout.LayoutParams(-1, -2);
+        spacing.bottomMargin = dp(10);
+        results.addView(card, spacing);
+        return card;
+    }
+
+    private void addRecipeRow(LinearLayout card, Recipe recipe, int people) {
+        String label = recipe.minutes > 0 ? recipe.title + " · " + recipe.minutes + " min" : recipe.title;
+        LinearLayout row = new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        ImageView thumbnail = photoView();
+        thumbnail.setBackground(surface(SAND, 11));
+        thumbnail.setClipToOutline(true);
+        row.addView(thumbnail, new LinearLayout.LayoutParams(dp(70), dp(62)));
+        bindPhoto(thumbnail, recipe.id, true, null);
+        Button details = button(label, false);
+        details.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        details.setBackground(new RippleDrawable(ColorStateList.valueOf(0x347c3b21), surface(CARD, 12), null));
+        details.setTextSize(16);
+        details.setTextColor(INK);
+        details.setTypeface(null, Typeface.BOLD);
+        details.setTag(recipe.id);
+        details.setOnClickListener(view -> showRecipe(recipe, people));
+        thumbnail.setOnClickListener(view -> details.performClick());
+        row.addView(details, new LinearLayout.LayoutParams(0, -2, 1));
+        card.addView(row);
+    }
+
+    private ImageView photoView() {
+        ImageView image = new ImageView(this);
+        image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        return image;
+    }
+
+    private void bindPhoto(ImageView view, String key, boolean thumbnail, Consumer<RecipePhotos.Credit> onComplete) {
+        View.OnAttachStateChangeListener binding = new View.OnAttachStateChangeListener() {
+            private Future<?> request;
+
+            @Override public void onViewAttachedToWindow(View attached) {
+                request = loadPhoto(view, key, thumbnail, onComplete);
+            }
+
+            @Override public void onViewDetachedFromWindow(View detached) {
+                request.cancel(false);
+                detached.removeOnAttachStateChangeListener(this);
+            }
+        };
+        view.addOnAttachStateChangeListener(binding);
+        if (view.isAttachedToWindow()) {
+            binding.onViewAttachedToWindow(view);
+        }
+    }
+
+    private Future<?> loadPhoto(ImageView view, String key, boolean thumbnail,
+                                Consumer<RecipePhotos.Credit> onComplete) {
+        return imageWorker.submit(() -> {
+            RecipePhotos.Photo photo = null;
+            try {
+                photo = photos.load(key, thumbnail);
+            } catch (IOException error) {
+                Log.w("DinnerPicker", "Cannot load a local recipe photo", error);
+            }
+            RecipePhotos.Photo decoded = photo;
+            runOnUiThread(() -> {
+                if (isDestroyed() || !view.isAttachedToWindow()) {
+                    return;
+                }
+                if (decoded != null) {
+                    view.setImageBitmap(decoded.bitmap());
+                }
+                if (onComplete != null) {
+                    onComplete.accept(decoded == null ? null : decoded.credit());
+                }
+            });
+        });
+    }
+
+    private void showPhotoCredit(RecipePhotos.Credit credit) {
+        String title = credit.title() + "\n" + credit.author() + "\n\n";
+        String license = credit.license() + "\n";
+        String source = "Source · Wikimedia Commons";
+        SpannableString message = new SpannableString(title + license + source + "\n\nPhoto resized and cropped to fit.");
+        message.setSpan(new URLSpan(credit.licenseUrl()), title.length(),
+                title.length() + credit.license().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        int sourceStart = title.length() + license.length();
+        message.setSpan(new URLSpan(credit.sourceUrl()), sourceStart,
+                sourceStart + source.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        TextView body = text("", 15, false);
+        body.setText(message);
+        body.setLinkTextColor(ACCENT);
+        body.setMovementMethod(LinkMovementMethod.getInstance());
+        body.setPadding(dp(22), dp(12), dp(22), dp(16));
+        ScrollView content = new ScrollView(this);
+        content.addView(body);
+        new AlertDialog.Builder(this).setTitle("Photo credit").setView(content)
+                .setPositiveButton("Close", null).show();
     }
 
     private Button unitsChip(Runnable onChange) {
@@ -1000,6 +1289,10 @@ public final class MainActivity extends Activity {
 
     private void showRecipe(Recipe recipe, int people) {
         dismissKeyboard();
+        if (!recipe.id.equals(openRecipeId)) {
+            checkedIngredients.clear();
+            pendingDetailScroll = 0;
+        }
         openRecipeId = recipe.id;
         openRecipeServings = people;
         LinearLayout page = column();
@@ -1008,37 +1301,196 @@ public final class MainActivity extends Activity {
         page.setFocusableInTouchMode(true);
         LinearLayout actions = new LinearLayout(this);
         actions.setGravity(Gravity.CENTER_VERTICAL);
-        Button back = chip("← Back to results", false, this::closeRecipe);
+        String backLabel = screen == Screen.SAVED ? "← Back to saved recipes" : "← Back to results";
+        Button back = chip(backLabel, false, this::closeRecipe);
         actions.addView(back, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView body = text(recipeText(recipe, people), 16, false);
-        detailUnits = unitsChip(() -> body.setText(recipeText(recipe, people)));
-        actions.addView(detailUnits);
         page.addView(actions);
         ScrollView details = new ScrollView(this);
         LinearLayout content = column();
         content.setPadding(dp(4), dp(8), dp(4), dp(24));
-        content.addView(text(recipe.title, 27, true));
+        content.addView(headline(recipe.title, 30));
         if (recipe.minutes > 0) {
             content.addView(text(recipe.minutes + " min", 16, false));
         }
-        body.setTextIsSelectable(true);
-        content.addView(body);
+        addSaveAction(content, recipe.id);
+        addRecipePhoto(content, recipe.id, details);
+        addRecipeTags(content, recipe);
+        detailUnits = unitsChip(addRecipeSections(content, recipe, people));
+        actions.addView(detailUnits);
+        if (recipe.notes != null && !recipe.notes.isEmpty()) {
+            LinearLayout notes = column();
+            notes.addView(headline("Notes", 20));
+            TextView note = text(recipe.notes, 15, false);
+            Linkify.addLinks(note, Linkify.WEB_URLS);
+            notes.addView(note);
+            content.addView(recipeSection(notes), sectionSpacing());
+        }
+        if (recipe.isImported()) {
+            TextView source = text("Source and authors · Wikibooks\n" + recipe.revisionUrl
+                    + "\nAdaptation and translation · CC BY-SA 4.0\n" + recipe.licenseUrl, 14, false);
+            Linkify.addLinks(source, Linkify.WEB_URLS);
+            content.addView(source, sectionSpacing());
+        }
         details.addView(content);
         page.addView(details, new LinearLayout.LayoutParams(-1, 0, 1));
         detailScreen = page;
+        detailScroll = details;
         mainScreen.setVisibility(View.INVISIBLE);
         root.addView(page, new FrameLayout.LayoutParams(-1, -1));
         page.requestFocus();
     }
 
+    private void addSaveAction(LinearLayout content, String recipeId) {
+        Button save = button(savedRecipeIds().contains(recipeId) ? "Remove from saved" : "Save recipe", false);
+        save.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        save.setOnClickListener(view -> {
+            Set<String> ids = new LinkedHashSet<>(savedRecipeIds());
+            boolean saved = !ids.remove(recipeId);
+            if (saved) {
+                ids.add(recipeId);
+            }
+            preferences.edit().putStringSet(SAVED_RECIPES_PREFERENCE, ids).apply();
+            save.setText(saved ? "Remove from saved" : "Save recipe");
+        });
+        LinearLayout.LayoutParams spacing = new LinearLayout.LayoutParams(-1, -2);
+        spacing.bottomMargin = dp(8);
+        content.addView(save, spacing);
+    }
+
+    private void addRecipePhoto(LinearLayout content, String recipeId, ScrollView details) {
+        ImageView image = photoView();
+        image.setBackground(surface(SAND, 18));
+        image.setClipToOutline(true);
+        image.setVisibility(View.GONE);
+        content.addView(image, new LinearLayout.LayoutParams(-1, dp(192)));
+        Button creditButton = button("Photo credit", false);
+        creditButton.setVisibility(View.GONE);
+        content.addView(creditButton);
+        bindPhoto(image, recipeId, false, credit -> {
+            if (credit != null) {
+                image.setVisibility(View.VISIBLE);
+                creditButton.setText(credit.illustrative() ? "Illustrative photo · Credit" : "Photo credit");
+                creditButton.setOnClickListener(view -> showPhotoCredit(credit));
+                creditButton.setVisibility(View.VISIBLE);
+            }
+            restoreDetailScroll(details);
+        });
+    }
+
+    private void restoreDetailScroll(ScrollView details) {
+        if (pendingDetailScroll == 0) {
+            return;
+        }
+        // Wait for the optional photo and credit to take up their final space.
+        details.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override public void onGlobalLayout() {
+                details.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                if (detailScroll == details) {
+                    if (details.getScrollY() == 0) {
+                        details.scrollTo(0, pendingDetailScroll);
+                    }
+                    pendingDetailScroll = 0;
+                }
+            }
+        });
+        details.requestLayout();
+    }
+
+    private LinearLayout.LayoutParams sectionSpacing() {
+        LinearLayout.LayoutParams spacing = new LinearLayout.LayoutParams(-1, -2);
+        spacing.topMargin = dp(12);
+        return spacing;
+    }
+
+    private LinearLayout recipeSection(LinearLayout content) {
+        content.setBackground(surface(CARD, 18));
+        content.setPadding(dp(13), dp(8), dp(13), dp(10));
+        return content;
+    }
+
+    private Runnable addRecipeSections(LinearLayout content, Recipe recipe, int people) {
+        LinearLayout ingredients = recipeSection(column());
+        LinearLayout method = recipeSection(column());
+        int portions = recipe.servings(people);
+        ingredients.addView(headline(portions > 0 ? "Ingredients · Servings " + portions : "Ingredients", 20));
+        method.addView(headline("Method", 20));
+
+        List<String> initialLines = recipe.ingredientLines(people, measurementSystem);
+        List<CheckBox> ingredientRows = new ArrayList<>(initialLines.size());
+        for (String line : initialLines) {
+            int position = ingredientRows.size();
+            CheckBox ingredient = new CheckBox(this);
+            ingredient.setText(line);
+            ingredient.setTextSize(16);
+            ingredient.setTextColor(INK);
+            ingredient.setMinimumHeight(dp(48));
+            ingredient.setChecked(checkedIngredients.contains(position));
+            ingredient.setOnCheckedChangeListener((view, checked) -> {
+                if (checked) {
+                    checkedIngredients.add(position);
+                } else {
+                    checkedIngredients.remove(position);
+                }
+            });
+            ingredientRows.add(ingredient);
+            ingredients.addView(ingredient);
+        }
+        List<TextView> stepRows = new ArrayList<>(recipe.steps.size());
+        for (int index = 0; index < recipe.steps.size(); index++) {
+            TextView step = text(formatStep(recipe, index), 16, false);
+            step.setTextIsSelectable(true);
+            stepRows.add(step);
+            method.addView(step);
+        }
+        content.addView(ingredients, sectionSpacing());
+        content.addView(method, sectionSpacing());
+        return () -> {
+            List<String> lines = recipe.ingredientLines(people, measurementSystem);
+            for (int index = 0; index < ingredientRows.size(); index++) {
+                ingredientRows.get(index).setText(lines.get(index));
+            }
+            for (int index = 0; index < stepRows.size(); index++) {
+                stepRows.get(index).setText(formatStep(recipe, index));
+            }
+        };
+    }
+
+    private String formatStep(Recipe recipe, int index) {
+        return (index + 1) + ". " + RecipeUnits.formatText(recipe.steps.get(index), measurementSystem);
+    }
+
     private void closeRecipe() {
+        View opener = openRecipeId == null ? null : results.findViewWithTag(openRecipeId);
+        boolean removedFromSaved = screen == Screen.SAVED && openRecipeId != null
+                && !savedRecipeIds().contains(openRecipeId);
         openRecipeId = null;
+        checkedIngredients.clear();
+        pendingDetailScroll = 0;
         if (detailScreen != null) {
             root.removeView(detailScreen);
             detailScreen = null;
+            detailScroll = null;
             detailUnits = null;
             mainScreen.setVisibility(View.VISIBLE);
+            if (removedFromSaved) {
+                loadSavedRecipes(scroll.getScrollY());
+            } else if (opener != null) {
+                restoreResultFocus(opener);
+            }
         }
+    }
+
+    private void restoreResultFocus(View opener) {
+        opener.post(() -> {
+            if (detailScreen != null || !opener.isShown() || !opener.isAttachedToWindow()) {
+                return;
+            }
+            if (getSystemService(AccessibilityManager.class).isTouchExplorationEnabled()) {
+                opener.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null);
+            } else if (!opener.isInTouchMode()) {
+                opener.requestFocus();
+            }
+        });
     }
 
     private void restoreRecipe() {
@@ -1047,7 +1499,7 @@ public final class MainActivity extends Activity {
         }
         String id = openRecipeId;
         int people = openRecipeServings;
-        FrameLayout surface = root;
+        int request = requestNumber;
         worker.execute(() -> {
             Recipe restored;
             try {
@@ -1057,12 +1509,13 @@ public final class MainActivity extends Activity {
             }
             Recipe recipe = restored;
             runOnUiThread(() -> {
-                if (!isDestroyed() && root == surface && id.equals(openRecipeId)) {
-                    if (recipe != null) {
-                        showRecipe(recipe, people);
-                    } else {
-                        closeRecipe();
-                    }
+                if (isDestroyed() || detailScreen != null || !id.equals(openRecipeId)) {
+                    return;
+                }
+                if (recipe != null && isCurrentSearch(request)) {
+                    showRecipe(recipe, people);
+                } else {
+                    closeRecipe();
                 }
             });
         });
@@ -1090,41 +1543,21 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private String recipeText(Recipe recipe, int people) {
-        int portionCount = recipe.servings(people);
-        StringBuilder body = new StringBuilder();
+    private void addRecipeTags(LinearLayout content, Recipe recipe) {
         if (!recipe.tags.isEmpty()) {
             List<String> labels = new ArrayList<>();
             for (Recipe.Tag tag : recipe.tags) {
                 if (tag.note == null) {
                     labels.add(tag.label);
                 } else {
-                    body.append(tag.label).append(" · ").append(tag.note).append('\n');
+                    TextView note = text(tag.label + " · " + tag.note, 14, false);
+                    note.setTextColor(MUTED);
+                    content.addView(note);
                 }
             }
             if (!labels.isEmpty()) {
-                body.append(String.join(" · ", labels)).append('\n');
+                content.addView(text(String.join(" · ", labels), 14, false));
             }
-            body.append('\n');
         }
-        body.append("Ingredients");
-        if (portionCount > 0) {
-            body.append(" · Servings ").append(portionCount);
-        }
-        body.append('\n');
-        for (String ingredient : recipe.ingredientLines(people, measurementSystem)) {
-            body.append("• ").append(ingredient).append('\n');
-        }
-        body.append('\n').append("Method").append('\n');
-        for (int i = 0; i < recipe.steps.size(); i++) {
-            body.append(i + 1).append(". ").append(RecipeUnits.formatText(recipe.steps.get(i), measurementSystem)).append('\n');
-        }
-        if (recipe.isImported()) {
-            body.append('\n').append("Source and authors · Wikibooks")
-                    .append('\n').append(recipe.revisionUrl)
-                    .append('\n').append("Adaptation and translation · CC BY-SA 4.0")
-                    .append('\n').append(recipe.licenseUrl);
-        }
-        return body.toString().trim();
     }
 }

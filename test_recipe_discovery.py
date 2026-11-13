@@ -26,6 +26,13 @@ public class DiscoveryProbe {
             System.out.println(RecipeDiscovery.matchesTitle(RecipeDiscovery.key(args[1]), args[2], args[3]));
             return;
         }
+        if (args[0].equals("title-rank")) {
+            String query = RecipeDiscovery.key(args[1]);
+            for (int i = 2; i < args.length; i += 2) {
+                System.out.println(RecipeDiscovery.titleMatch(query, args[i], args[i + 1]));
+            }
+            return;
+        }
         if (args[0].equals("units")) {
             RecipeUnits.System system = RecipeUnits.System.valueOf(args[1]);
             for (int i = 2; i < args.length; i++) {
@@ -132,6 +139,18 @@ class RecipeDiscoveryTests(unittest.TestCase):
                                                  text=True).strip(), "true")
         self.assertEqual(subprocess.check_output([*command, "BAKED    BEETS", "Запечённая свёкла", "Baked beets"],
                                                  text=True).strip(), "true")
+
+    def test_title_rank_uses_normalized_titles_in_both_languages(self):
+        command = [self.java, "-cp", self.directory, "app.dinnerpicker.DiscoveryProbe", "title-rank"]
+        matches = subprocess.check_output([*command, "  CHOCOLATE    MOUSSE ",
+                                           "Шоколадный мусс", "Chocolate Mousse",
+                                           "Шоколадный торт", "Chocolate Mousse Cake",
+                                           "Мусс с тофу", "Tofu Chocolate Mousse",
+                                           "Пудинг", "Pudding"], text=True).splitlines()
+        self.assertEqual(matches, ["EXACT", "PREFIX", "SUBSTRING", "NONE"])
+        matches = subprocess.check_output([*command, "СВЕКЛА", "Свёкла", "Baked beets",
+                                           "Свёкла запечённая", "Baked beets"], text=True).splitlines()
+        self.assertEqual(matches, ["EXACT", "PREFIX"])
 
     def render_units(self, system, *lines):
         encoded = [base64.b64encode(line.encode()).decode() for line in lines]

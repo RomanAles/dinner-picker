@@ -24,6 +24,23 @@ import java.util.Map;
 import java.util.Set;
 
 final class RecipeCatalog {
+    private static final String SEED_ROWS = """
+            SELECT r.id, r.family_id, f.name_en, r.title_en, r.minutes, r.servings
+            FROM recipe r JOIN family f ON f.id=r.family_id
+            """;
+    private static final int MAX_PANTRY_SUGGESTIONS = 3;
+
+    record PantryResult(List<Card> cards, List<PantrySuggestion> suggestions) {}
+
+    record PantrySuggestion(Recipe recipe, String missingIngredient) {}
+
+    private record Pantry(Set<String> available, Set<String> entered, Map<String, String> labels) {}
+
+    private record PantryMatch(String missingKey, boolean usesEnteredIngredient) {}
+
+    private record PantryCandidate(String id, boolean imported, String title, int minutes,
+                                   String missingIngredient) {}
+
     static final class Card {
         final String title;
         final List<Recipe> variants = new ArrayList<>();
@@ -72,12 +89,14 @@ final class RecipeCatalog {
         }
     }
 
-    private record Match(String id, boolean imported, String titleEn, int minutes,
-                         List<String> missingAxes) {}
+    private record Match(String id, String cardId, boolean imported, String titleEn, int minutes,
+                         List<String> missingAxes, RecipeDiscovery.TitleMatch titleMatch) {}
+
+    private record CatalogRecipe(Recipe recipe, String cardId, String cardTitle, String cardSummary) {}
 
     private RecipeCatalog() {}
 
-    private static File installedCatalog(Context context) throws IOException {
+    private static synchronized File installedCatalog(Context context) throws IOException {
         long updateTime;
         try {
             updateTime = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).lastUpdateTime;
@@ -88,8 +107,10 @@ final class RecipeCatalog {
         File target = new File(directory, "recipes-" + updateTime + ".sqlite");
         if (!target.isFile()) {
             File temporary = File.createTempFile("recipes-", ".tmp", directory);
-            try (InputStream asset = context.getAssets().open("recipes.sqlite")) {
-                Files.copy(asset, temporary.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            try {
+                try (InputStream asset = context.getAssets().open("recipes.sqlite")) {
+                    Files.copy(asset, temporary.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
                 Files.move(temporary.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } finally {
                 Files.deleteIfExists(temporary.toPath());
@@ -98,52 +119,122 @@ final class RecipeCatalog {
         return target;
     }
 
+    private static SQLiteDatabase openCatalog(Context context) throws IOException {
+        return SQLiteDatabase.openDatabase(installedCatalog(context).getPath(), null, SQLiteDatabase.OPEN_READONLY);
+    }
+
     static String key(String value) {
         return RecipeDiscovery.key(value);
     }
 
-    static List<Card> find(Context context, String text, int minutes, boolean includeBasics)
+    static PantryResult findPantry(Context context, String text, int minutes, boolean includeBasics)
             throws IOException {
-        File file = installedCatalog(context);
-        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(file.getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
-            Set<String> available = pantry(db, text, includeBasics);
+        try (SQLiteDatabase db = openCatalog(context)) {
+            Pantry pantry = pantry(db, text, includeBasics);
             Map<String, Card> groups = new LinkedHashMap<>();
-            try (Cursor rows = db.rawQuery(
-                    "SELECT r.id, r.family_id, f.name_en, r.title_en" +
-                    ", r.minutes, r.servings FROM recipe r JOIN family f ON f.id=r.family_id" +
-                    " WHERE r.minutes<=? ORDER BY r.minutes, r.id",
-                    new String[] {Integer.toString(minutes)})) {
-                while (rows.moveToNext()) {
-                    String id = rows.getString(0);
-                    Recipe recipe = new Recipe(id, rows.getString(3), rows.getInt(4), rows.getInt(5));
-                    if (!readIngredients(db, id, available, recipe)) {
-                        continue;
-                    }
-                    readSteps(db, id, recipe);
-                    String family = rows.getString(2);
-                    groups.computeIfAbsent(rows.getString(1), unused -> new Card(family)).variants.add(recipe);
-                }
+            List<PantryCandidate> candidates = new ArrayList<>();
+            String[] timeLimit = {Integer.toString(minutes)};
+            try (Cursor rows = db.rawQuery(SEED_ROWS + " WHERE r.minutes<=? ORDER BY r.minutes, r.id", timeLimit)) {
+                collectPantryMatches(db, rows, false, pantry, groups, candidates);
             }
-            try (Cursor rows = db.rawQuery(externalRows() + " WHERE r.strict_ready=1 AND r.minutes<=?",
-                    new String[] {Integer.toString(minutes)})) {
-                while (rows.moveToNext()) {
-                    if (availableExternal(db, rows.getString(0), available)) {
-                        addExternal(rows, groups);
-                    }
-                }
+            String importedRows = externalRows(db);
+            try (Cursor rows = db.rawQuery(importedRows +
+                    " WHERE r.strict_ready=1 AND r.minutes>0 AND r.minutes<=? ORDER BY r.minutes, r.id", timeLimit)) {
+                collectPantryMatches(db, rows, true, pantry, groups, candidates);
+            }
+            boolean taggedCatalog = hasTable(db, "recipe_tag");
+            if (groups.isEmpty()) {
+                List<PantrySuggestion> suggestions = pantrySuggestions(db, candidates, importedRows, taggedCatalog);
+                return new PantryResult(Collections.emptyList(), suggestions);
             }
             List<Card> cards = new ArrayList<>(groups.values());
+            if (taggedCatalog) {
+                for (Card card : cards) {
+                    for (Recipe recipe : card.variants) {
+                        recipe.tags = readTags(db, recipe.id);
+                    }
+                }
+            }
             cards.sort(Comparator.comparingInt((Card card) -> card.variants.get(0).minutes)
                     .thenComparing(Card::label));
-            return cards;
+            return new PantryResult(cards, Collections.emptyList());
         }
+    }
+
+    private static void collectPantryMatches(SQLiteDatabase db, Cursor rows, boolean imported, Pantry pantry,
+                                             Map<String, Card> groups, List<PantryCandidate> candidates)
+            throws IOException {
+        String requirements = imported ? "SELECT ingredient_key FROM offline_ingredient WHERE recipe_id=?"
+                : "SELECT ingredient_id FROM recipe_ingredient WHERE recipe_id=?";
+        while (rows.moveToNext()) {
+            String id = rows.getString(0);
+            PantryMatch match;
+            try (Cursor ingredients = db.rawQuery(requirements, new String[] {id})) {
+                match = matchPantryIngredients(ingredients, pantry);
+            }
+            if (match == null) {
+                continue;
+            }
+            if (match.missingKey() == null) {
+                addToCards(groups, imported ? readExternal(rows) : readSeed(db, rows));
+            } else if (groups.isEmpty() && match.usesEnteredIngredient()) {
+                String label = pantry.labels().get(match.missingKey());
+                if (label != null) {
+                    candidates.add(new PantryCandidate(id, imported, rows.getString(imported ? 2 : 3),
+                            rows.getInt(imported ? 5 : 4), label));
+                }
+            }
+        }
+    }
+
+    private static PantryMatch matchPantryIngredients(Cursor ingredients, Pantry pantry) {
+        if (!ingredients.moveToFirst()) {
+            return null;
+        }
+        String missing = null;
+        boolean usesEnteredIngredient = false;
+        do {
+            String key = ingredients.getString(0);
+            if (pantry.entered().contains(key)) {
+                usesEnteredIngredient = true;
+            } else if (!pantry.available().contains(key)) {
+                if (missing != null && !missing.equals(key)) {
+                    return null;
+                }
+                missing = key;
+            }
+        } while (ingredients.moveToNext());
+        return new PantryMatch(missing, usesEnteredIngredient);
+    }
+
+    private static List<PantrySuggestion> pantrySuggestions(SQLiteDatabase db, List<PantryCandidate> candidates,
+                                                           String importedRows, boolean taggedCatalog)
+            throws IOException {
+        candidates.sort(Comparator.comparingInt(PantryCandidate::minutes)
+                .thenComparing(PantryCandidate::title).thenComparing(PantryCandidate::id));
+        Set<String> seenCards = new HashSet<>();
+        List<PantrySuggestion> suggestions = new ArrayList<>();
+        for (PantryCandidate candidate : candidates) {
+            CatalogRecipe entry = readRecipe(db, candidate.id(), candidate.imported(), importedRows);
+            if (entry == null || !seenCards.add(entry.cardId())) {
+                continue;
+            }
+            Recipe recipe = entry.recipe();
+            if (taggedCatalog) {
+                recipe.tags = readTags(db, recipe.id);
+            }
+            suggestions.add(new PantrySuggestion(recipe, candidate.missingIngredient()));
+            if (suggestions.size() == MAX_PANTRY_SUGGESTIONS) {
+                break;
+            }
+        }
+        return suggestions;
     }
 
     static List<TagAxis> discoveryAxes(Context context) throws IOException {
         Map<String, TagAxis> axes = new LinkedHashMap<>();
-        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
-                null, SQLiteDatabase.OPEN_READONLY)) {
-            if (!hasTags(db)) {
+        try (SQLiteDatabase db = openCatalog(context)) {
+            if (!hasTable(db, "recipe_tag")) {
                 return Collections.emptyList();
             }
             try (Cursor rows = db.rawQuery(
@@ -167,9 +258,8 @@ final class RecipeCatalog {
         }
         RecipeDiscovery query = new RecipeDiscovery(filters, maxMinutes);
         String normalizedTitle = key(title);
-        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
-                null, SQLiteDatabase.OPEN_READONLY)) {
-            boolean taggedCatalog = hasTags(db);
+        try (SQLiteDatabase db = openCatalog(context)) {
+            boolean taggedCatalog = hasTable(db, "recipe_tag");
             if (!taggedCatalog && !query.axes.isEmpty()) {
                 return new CatalogPage(Collections.emptyList(), 0, false, Collections.emptyList(), Collections.emptyList());
             }
@@ -184,6 +274,7 @@ final class RecipeCatalog {
 
             // Choose the page after grouping so a family cannot span multiple pages.
             Map<String, Card> groups = new LinkedHashMap<>();
+            String externalRows = externalRows(db);
             int index = 0;
             for (List<Match> family : matches.values()) {
                 if (index++ < offset) {
@@ -193,11 +284,16 @@ final class RecipeCatalog {
                     break;
                 }
                 for (Match match : family) {
-                    Recipe recipe = addRecipe(db, match.id(), match.imported(), groups);
-                    if (taggedCatalog && recipe != null) {
+                    CatalogRecipe entry = readRecipe(db, match.id(), match.imported(), externalRows);
+                    if (entry == null) {
+                        continue;
+                    }
+                    Recipe recipe = entry.recipe();
+                    if (taggedCatalog) {
                         recipe.tags = readTags(db, match.id());
                         recipe.missingTagAxes = match.missingAxes();
                     }
+                    addToCards(groups, entry);
                 }
             }
             return new CatalogPage(new ArrayList<>(groups.values()), matches.size(), partial, titleHints, refinements);
@@ -206,7 +302,7 @@ final class RecipeCatalog {
 
     private static Map<String, List<Match>> searchMatches(SQLiteDatabase db, RecipeDiscovery query,
                                                          String title, boolean exactOnly) {
-        Map<String, List<Match>> matches = new LinkedHashMap<>();
+        List<Match> matches = new ArrayList<>();
         int best = exactOnly ? query.axes.size() : -1;
         try (Cursor rows = db.rawQuery(query.sql, query.arguments)) {
             while (rows.moveToNext()) {
@@ -214,16 +310,25 @@ final class RecipeCatalog {
                 if (hits < best) {
                     break;
                 }
-                if (!RecipeDiscovery.matchesTitle(title, rows.getString(5), rows.getString(6))) {
+                String titleEn = rows.getString(6);
+                RecipeDiscovery.TitleMatch titleMatch = RecipeDiscovery.titleMatch(title, rows.getString(5), titleEn);
+                if (titleMatch == RecipeDiscovery.TitleMatch.NONE) {
                     continue;
                 }
                 best = hits;
-                matches.computeIfAbsent(rows.getString(1), ignored -> new ArrayList<>()).add(new Match(
-                        rows.getString(0), rows.getInt(2) != 0, rows.getString(6),
-                        rows.getInt(7), query.missingAxes(rows.getString(4))));
+                matches.add(new Match(rows.getString(0), rows.getString(1), rows.getInt(2) != 0, titleEn,
+                        rows.getInt(7), query.missingAxes(rows.getString(4)), titleMatch));
             }
         }
-        return matches;
+        if (!title.isEmpty()) {
+            // A stable sort preserves the cooking time and ID order within each title rank.
+            matches.sort(Comparator.comparing(Match::titleMatch));
+        }
+        Map<String, List<Match>> groups = new LinkedHashMap<>();
+        for (Match match : matches) {
+            groups.computeIfAbsent(match.cardId(), ignored -> new ArrayList<>()).add(match);
+        }
+        return groups;
     }
 
     private static List<Refinement> refinements(SQLiteDatabase db, String title,
@@ -232,7 +337,8 @@ final class RecipeCatalog {
         if (maxMinutes != null) {
             Map<String, List<Match>> withoutTime = searchMatches(db, new RecipeDiscovery(filters, null), title, true);
             if (!withoutTime.isEmpty()) {
-                int shortest = withoutTime.values().iterator().next().get(0).minutes();
+                int shortest = withoutTime.values().stream().flatMap(List::stream).mapToInt(Match::minutes)
+                        .filter(minutes -> minutes > 0).min().orElse(0);
                 Integer extended = shortest > 0 ? (int) Math.min(Integer.MAX_VALUE, ((long) shortest + 14) / 15 * 15) : null;
                 int total = extended == null ? withoutTime.size() : searchMatches(
                         db, new RecipeDiscovery(filters, extended), title, true).size();
@@ -257,22 +363,46 @@ final class RecipeCatalog {
     }
 
     static Recipe recipe(Context context, String id) throws IOException {
-        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(installedCatalog(context).getPath(),
-                null, SQLiteDatabase.OPEN_READONLY)) {
-            Map<String, Card> group = new LinkedHashMap<>();
-            Recipe recipe = addRecipe(db, id, false, group);
-            if (recipe == null) {
-                recipe = addRecipe(db, id, true, group);
-            }
-            if (recipe != null && hasTags(db)) {
-                recipe.tags = readTags(db, id);
-            }
-            return recipe;
+        try (SQLiteDatabase db = openCatalog(context)) {
+            return readRecipeById(db, id, externalRows(db), hasTable(db, "recipe_tag"));
         }
     }
 
-    private static boolean hasTags(SQLiteDatabase db) {
-        try (Cursor rows = db.rawQuery("SELECT 1 FROM sqlite_master WHERE type='table' AND name='recipe_tag'", null)) {
+    static List<Recipe> savedRecipes(Context context, Set<String> ids) throws IOException {
+        List<Recipe> recipes = new ArrayList<>(ids.size());
+        try (SQLiteDatabase db = openCatalog(context)) {
+            String externalRows = externalRows(db);
+            boolean tagged = hasTable(db, "recipe_tag");
+            for (String id : ids) {
+                Recipe recipe = readRecipeById(db, id, externalRows, tagged);
+                if (recipe != null) {
+                    recipes.add(recipe);
+                }
+            }
+        }
+        recipes.sort(Comparator.comparing((Recipe recipe) -> recipe.title, String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(recipe -> recipe.id));
+        return recipes;
+    }
+
+    private static Recipe readRecipeById(SQLiteDatabase db, String id, String externalRows, boolean tagged)
+            throws IOException {
+        CatalogRecipe entry = readRecipe(db, id, false, externalRows);
+        if (entry == null) {
+            entry = readRecipe(db, id, true, externalRows);
+        }
+        if (entry == null) {
+            return null;
+        }
+        Recipe recipe = entry.recipe();
+        if (tagged) {
+            recipe.tags = readTags(db, id);
+        }
+        return recipe;
+    }
+
+    private static boolean hasTable(SQLiteDatabase db, String name) {
+        try (Cursor rows = db.rawQuery("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", new String[] {name})) {
             return rows.moveToFirst();
         }
     }
@@ -290,63 +420,52 @@ final class RecipeCatalog {
         return tags;
     }
 
-    private static Recipe addRecipe(SQLiteDatabase db, String id, boolean imported,
-                                    Map<String, Card> groups) throws IOException {
-        String[] argument = {id};
-        if (imported) {
-            try (Cursor rows = db.rawQuery(externalRows() + " WHERE r.id=?", argument)) {
-                return rows.moveToFirst() ? addExternal(rows, groups) : null;
-            }
-        }
-        try (Cursor row = db.rawQuery(
-                "SELECT r.family_id, f.name_en, r.title_en, r.minutes, r.servings FROM recipe r" +
-                " JOIN family f ON f.id=r.family_id WHERE r.id=?", argument)) {
+    private static CatalogRecipe readRecipe(SQLiteDatabase db, String id, boolean imported, String externalRows)
+            throws IOException {
+        String rows = imported ? externalRows : SEED_ROWS;
+        try (Cursor row = db.rawQuery(rows + " WHERE r.id=?", new String[] {id})) {
             if (!row.moveToFirst()) {
                 return null;
             }
-            Recipe recipe = new Recipe(id, row.getString(2), row.getInt(3), row.getInt(4));
-            readIngredients(db, id, null, recipe);
-            readSteps(db, id, recipe);
-            String family = row.getString(1);
-            groups.computeIfAbsent(row.getString(0), ignored -> new Card(family)).variants.add(recipe);
-            return recipe;
+            return imported ? readExternal(row) : readSeed(db, row);
         }
     }
 
-    private static String externalRows() {
+    private static CatalogRecipe readSeed(SQLiteDatabase db, Cursor row) {
+        String id = row.getString(0);
+        Recipe recipe = new Recipe(id, row.getString(3), row.getInt(4), row.getInt(5));
+        readIngredients(db, id, recipe);
+        readSteps(db, id, recipe);
+        return new CatalogRecipe(recipe, "seed:" + row.getString(1), row.getString(2), null);
+    }
+
+    private static String externalRows(SQLiteDatabase db) {
+        boolean hasNotes = hasTable(db, "offline_note");
         return "SELECT r.id, r.family_id, r.title_en, r.ingredients_en, r.steps_en," +
-                " r.minutes, r.servings, r.revision_url, r.license_url, f.title_en, f.summary_en" +
-                " FROM offline_recipe r LEFT JOIN offline_family f ON f.id=r.family_id";
+                " r.minutes, r.servings, r.revision_url, r.license_url, f.title_en, f.summary_en," +
+                (hasNotes ? " n.text_en" : " NULL") +
+                " FROM offline_recipe r LEFT JOIN offline_family f ON f.id=r.family_id" +
+                (hasNotes ? " LEFT JOIN offline_note n ON n.recipe_id=r.id" : "");
     }
 
-    private static boolean availableExternal(SQLiteDatabase db, String id, Set<String> available) {
-        try (Cursor rows = db.rawQuery("SELECT ingredient_key FROM offline_ingredient WHERE recipe_id=?",
-                new String[] {id})) {
-            if (!rows.moveToFirst()) {
-                return false;
-            }
-            do {
-                if (!available.contains(rows.getString(0))) {
-                    return false;
-                }
-            } while (rows.moveToNext());
-            return true;
-        }
-    }
-
-    private static Recipe addExternal(Cursor row, Map<String, Card> groups) throws IOException {
+    private static CatalogRecipe readExternal(Cursor row) throws IOException {
         String title = row.getString(2);
         Recipe recipe = new Recipe(row.getString(0), title, row.getInt(5), row.getInt(6));
         recipe.revisionUrl = row.getString(7);
         recipe.licenseUrl = row.getString(8);
+        recipe.notes = row.getString(11);
         readJsonLines(row.getString(3), recipe.sourceIngredients);
         readJsonLines(row.getString(4), recipe.steps);
         String family = row.getString(1);
-        Card card = groups.computeIfAbsent(family == null ? row.getString(0) : "offline:" + family,
-                ignored -> new Card(family == null ? title : row.getString(9)));
-        card.summary = row.getString(10);
-        card.variants.add(recipe);
-        return recipe;
+        String cardId = family == null ? recipe.id : "offline:" + family;
+        String cardTitle = family == null ? title : row.getString(9);
+        return new CatalogRecipe(recipe, cardId, cardTitle, row.getString(10));
+    }
+
+    private static void addToCards(Map<String, Card> groups, CatalogRecipe entry) {
+        Card card = groups.computeIfAbsent(entry.cardId(), ignored -> new Card(entry.cardTitle()));
+        card.summary = entry.cardSummary();
+        card.variants.add(entry.recipe());
     }
 
     private static void readJsonLines(String data, List<String> lines) throws IOException {
@@ -360,14 +479,16 @@ final class RecipeCatalog {
         }
     }
 
-    private static Set<String> pantry(SQLiteDatabase db, String text, boolean includeBasics) {
+    private static Pantry pantry(SQLiteDatabase db, String text, boolean includeBasics) {
         Map<String, String> names = new HashMap<>();
+        Map<String, String> labels = new HashMap<>();
         Set<String> available = new HashSet<>();
         try (Cursor rows = db.rawQuery("SELECT id, name_ru, name_en, is_basic FROM ingredient", null)) {
             while (rows.moveToNext()) {
                 String id = rows.getString(0);
                 names.put(key(rows.getString(1)), id);
                 names.put(key(rows.getString(2)), id);
+                labels.put(id, rows.getString(2));
                 if (includeBasics && rows.getInt(3) != 0) {
                     available.add(id);
                 }
@@ -379,37 +500,41 @@ final class RecipeCatalog {
                 names.put(key(rows.getString(0)), rows.getString(1));
             }
         }
-        try (Cursor rows = db.rawQuery(
-                "SELECT name, ingredient_key FROM offline_alias ORDER BY (language='en') DESC", null)) {
+        try (Cursor rows = db.rawQuery("""
+                SELECT name, ingredient_key, language FROM offline_alias
+                ORDER BY (language='en') DESC, length(name), name
+                """, null)) {
             while (rows.moveToNext()) {
-                names.putIfAbsent(key(rows.getString(0)), rows.getString(1));
+                String name = rows.getString(0);
+                String id = rows.getString(1);
+                names.putIfAbsent(key(name), id);
+                if ("en".equals(rows.getString(2)) && !name.trim().isEmpty()) {
+                    labels.putIfAbsent(id, name);
+                }
             }
         }
+        Set<String> entered = new HashSet<>();
         for (String item : text.split("[,;\\r\\n]+")) {
             String id = names.get(key(item));
             if (id != null) {
-                available.add(id);
+                entered.add(id);
             }
         }
-        return available;
+        available.addAll(entered);
+        return new Pantry(available, entered, labels);
     }
 
-    private static boolean readIngredients(SQLiteDatabase db, String id, Set<String> available,
-                                           Recipe recipe) {
+    private static void readIngredients(SQLiteDatabase db, String id, Recipe recipe) {
         try (Cursor rows = db.rawQuery(
-                "SELECT i.id, i.name_en, ri.amount, u.id, u.label_en" +
+                "SELECT i.name_en, ri.amount, u.id, u.label_en" +
                 " FROM recipe_ingredient ri JOIN ingredient i ON i.id=ri.ingredient_id" +
                 " JOIN unit u ON u.id=ri.unit_id WHERE ri.recipe_id=? ORDER BY ri.position",
                 new String[] {id})) {
             while (rows.moveToNext()) {
-                if (available != null && !available.contains(rows.getString(0))) {
-                    return false;
-                }
-                recipe.ingredients.add(new Recipe.Ingredient(rows.getString(1), rows.getDouble(2),
-                        rows.getString(3), rows.getString(4)));
+                recipe.ingredients.add(new Recipe.Ingredient(rows.getString(0), rows.getDouble(1),
+                        rows.getString(2), rows.getString(3)));
             }
         }
-        return !recipe.ingredients.isEmpty();
     }
 
     private static void readSteps(SQLiteDatabase db, String id, Recipe recipe) {

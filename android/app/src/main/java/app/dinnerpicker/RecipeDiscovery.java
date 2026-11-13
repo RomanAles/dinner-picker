@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 final class RecipeDiscovery {
+    enum TitleMatch { EXACT, PREFIX, SUBSTRING, NONE }
+
     private static final String CANDIDATES = """
             WITH candidates(id, card_id, minutes, imported, title_ru, title_en) AS (
                 SELECT id, 'seed:' || family_id, minutes, 0, title_ru, title_en FROM recipe
@@ -72,7 +74,26 @@ final class RecipeDiscovery {
     }
 
     static boolean matchesTitle(String normalizedQuery, String titleRu, String titleEn) {
-        return normalizedQuery.isEmpty() || key(titleRu).contains(normalizedQuery) || key(titleEn).contains(normalizedQuery);
+        return titleMatch(normalizedQuery, titleRu, titleEn) != TitleMatch.NONE;
+    }
+
+    static TitleMatch titleMatch(String normalizedQuery, String titleRu, String titleEn) {
+        if (normalizedQuery.isEmpty()) {
+            return TitleMatch.EXACT;
+        }
+        TitleMatch russian = titleMatch(normalizedQuery, key(titleRu));
+        TitleMatch english = titleMatch(normalizedQuery, key(titleEn));
+        return russian.compareTo(english) <= 0 ? russian : english;
+    }
+
+    private static TitleMatch titleMatch(String query, String title) {
+        if (title.equals(query)) {
+            return TitleMatch.EXACT;
+        }
+        if (title.startsWith(query)) {
+            return TitleMatch.PREFIX;
+        }
+        return title.contains(query) ? TitleMatch.SUBSTRING : TitleMatch.NONE;
     }
 
     List<String> missingAxes(String matched) {
